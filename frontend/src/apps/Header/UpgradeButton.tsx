@@ -1,4 +1,4 @@
-import { Avatar, Popover, Button, Badge, Col, List } from 'antd';
+import { Button, Badge } from 'antd';
 
 // import Notifications from '@/components/Notification';
 
@@ -6,8 +6,10 @@ import { RocketOutlined } from '@ant-design/icons';
 
 import useLanguage from '@/locale/useLanguage';
 
-export default function UpgradeButton() {
-  const translate = useLanguage();
+const RocketIcon: React.FC = RocketOutlined as unknown as React.FC;
+
+export default function UpgradeButton(): React.ReactElement {
+  const translate: (value: string) => string = useLanguage();
 
   return (
     <Badge count={1} size="small">
@@ -20,8 +22,8 @@ export default function UpgradeButton() {
           background: '#16923e',
           boxShadow: '0 2px 0 rgb(82 196 26 / 20%)',
         }}
-        icon={<RocketOutlined />}
-        onClick={() => {
+        icon={<RocketIcon />}
+        onClick={(): void => {
           window.open(`https://entreprise.idurarapp.com`);
         }}
       >
