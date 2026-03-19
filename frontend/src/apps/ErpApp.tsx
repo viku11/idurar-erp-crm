@@ -22,7 +22,25 @@ import useResponsive from '@/hooks/useResponsive';
 
 import storePersist from '@/redux/storePersist';
 
-export default function ErpCrmApp() {
+interface SettingsResult {
+  crm_settings: Record<string, unknown>;
+  finance_settings: Record<string, unknown>;
+  company_settings: Record<string, unknown>;
+  app_settings: Record<string, unknown>;
+  money_format_settings: Record<string, unknown>;
+}
+
+interface SettingsState {
+  result: SettingsResult;
+  isLoading: boolean;
+  isSuccess: boolean;
+}
+
+interface RootState {
+  settings: SettingsState;
+}
+
+export default function ErpCrmApp(): JSX.Element {
   const { Content } = Layout;
 
   // const { state: stateApp, appContextAction } = useAppContext();
@@ -34,12 +52,12 @@ export default function ErpCrmApp() {
   const dispatch = useDispatch();
 
   useLayoutEffect(() => {
-    dispatch(settingsAction.list({ entity: 'setting' }));
+    dispatch(settingsAction.list({ entity: 'setting' }) as unknown as Parameters<typeof dispatch>[0]);
   }, []);
 
   // const appSettings = useSelector(selectAppSettings);
 
-  const { isSuccess: settingIsloaded } = useSelector(selectSettings);
+  const { isSuccess: settingIsloaded } = useSelector((state: RootState): SettingsState => selectSettings(state));
 
   // useEffect(() => {
   //   const { loadDefaultLang } = storePersist.get('firstVisit');
