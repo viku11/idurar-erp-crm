@@ -1,3 +1,13 @@
+/// <reference types="vite/client" />
+
+// Workaround for @ant-design/icons type incompatibility with @types/react >=18.3
+declare module 'react' {
+  interface DOMAttributes<T> {
+    onPointerEnterCapture?: (e: React.PointerEvent<T>) => void;
+    onPointerLeaveCapture?: (e: React.PointerEvent<T>) => void;
+  }
+}
+
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button, Drawer, Layout, Menu } from 'antd';
@@ -30,20 +40,25 @@ import {
 
 const { Sider } = Layout;
 
-export default function Navigation() {
+interface SidebarProps {
+  collapsible: boolean;
+  isMobile?: boolean;
+}
+
+export default function Navigation(): JSX.Element {
   const { isMobile } = useResponsive();
 
   return isMobile ? <MobileSidebar /> : <Sidebar collapsible={false} />;
 }
 
-function Sidebar({ collapsible, isMobile = false }) {
+function Sidebar({ collapsible, isMobile = false }: SidebarProps): JSX.Element {
   let location = useLocation();
 
   const { state: stateApp, appContextAction } = useAppContext();
   const { isNavMenuClose } = stateApp;
   const { navMenu } = appContextAction;
-  const [showLogoApp, setLogoApp] = useState(isNavMenuClose);
-  const [currentPath, setCurrentPath] = useState(location.pathname.slice(1));
+  const [showLogoApp, setLogoApp] = useState<boolean>(isNavMenuClose);
+  const [currentPath, setCurrentPath] = useState<string>(location.pathname.slice(1));
 
   const translate = useLanguage();
   const navigate = useNavigate();
@@ -118,7 +133,7 @@ function Sidebar({ collapsible, isMobile = false }) {
     }, 200);
     return () => clearTimeout(timer);
   }, [isNavMenuClose]);
-  const onCollapse = () => {
+  const onCollapse = (): void => {
     navMenu.collapse();
   };
 
@@ -178,12 +193,12 @@ function Sidebar({ collapsible, isMobile = false }) {
   );
 }
 
-function MobileSidebar() {
-  const [visible, setVisible] = useState(false);
-  const showDrawer = () => {
+function MobileSidebar(): JSX.Element {
+  const [visible, setVisible] = useState<boolean>(false);
+  const showDrawer = (): void => {
     setVisible(true);
   };
-  const onClose = () => {
+  const onClose = (): void => {
     setVisible(false);
   };
 
