@@ -1,12 +1,14 @@
+import React from 'react';
 import { Button, Form, message, Upload } from 'antd';
+import type { RcFile } from 'antd/es/upload/interface';
 
 import { UploadOutlined } from '@ant-design/icons';
 
 import useLanguage from '@/locale/useLanguage';
 
-export default function AppSettingForm() {
+export default function AppSettingForm(): React.ReactElement {
   const translate = useLanguage();
-  const beforeUpload = (file) => {
+  const beforeUpload = (file: RcFile): false => {
     const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
     if (!isJpgOrPng) {
       message.error('You can only upload JPG/PNG file!');
@@ -23,7 +25,7 @@ export default function AppSettingForm() {
         name="file"
         label="Logo"
         valuePropName="fileList"
-        getValueFromEvent={(e) => e.fileList}
+        getValueFromEvent={(e: { fileList: RcFile[] }) => e.fileList}
       >
         <Upload
           beforeUpload={beforeUpload}
