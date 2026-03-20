@@ -1,11 +1,16 @@
+import React from 'react';
+
 import { ErpContextProvider } from '@/context/erp';
 
 import { Layout } from 'antd';
-import { useSelector } from 'react-redux';
 
 const { Content } = Layout;
 
-export default function ErpLayout({ children }) {
+interface ErpLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function ErpLayout({ children }: ErpLayoutProps) {
   return (
     <ErpContextProvider>
       <Content
