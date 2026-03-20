@@ -1,9 +1,14 @@
+import React from 'react';
 import { Tag } from 'antd';
 import useLanguage from '@/locale/useLanguage';
 
-export function StatusTag({ status = 'draft' }) {
+interface StatusTagProps {
+  status?: string;
+}
+
+export function StatusTag({ status = 'draft' }: StatusTagProps): React.ReactElement {
   const translate = useLanguage();
-  let color = () => {
+  let color = (): string => {
     return status === 'draft'
       ? 'cyan'
       : status === 'sent'
