@@ -1,13 +1,20 @@
+import React from 'react';
 import { Statistic, Progress, Divider, Row, Spin } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import useLanguage from '@/locale/useLanguage';
+
+interface CustomerPreviewCardProps {
+  isLoading?: boolean;
+  activeCustomer?: number;
+  newCustomer?: number;
+}
 
 export default function CustomerPreviewCard({
   isLoading = false,
   activeCustomer = 0,
   newCustomer = 0,
-}) {
-  const translate = useLanguage();
+}: CustomerPreviewCardProps): React.ReactElement {
+  const translate: (value: string) => string = useLanguage();
   return (
     <Row className="gutter-row">
       <div className="whiteBox shadow" style={{ height: 458 }}>
