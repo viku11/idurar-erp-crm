@@ -1,3 +1,4 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Form, Result, Button } from 'antd';
@@ -11,23 +12,27 @@ import useLanguage from '@/locale/useLanguage';
 import Loading from '@/components/Loading';
 import AuthModule from '@/modules/AuthModule';
 
-const ForgetPassword = () => {
+interface ForgetPasswordFormValues {
+  email: string;
+}
+
+const ForgetPassword: React.FC = () => {
   const translate = useLanguage();
 
   const navigate = useNavigate();
 
   const { onFetch, isSuccess, isLoading } = useOnFetch();
 
-  async function postData(data) {
+  async function postData(data: ForgetPasswordFormValues) {
     return await request.post({ entity: 'forgetpassword', jsonData: data });
   }
 
-  const onFinish = (values) => {
+  const onFinish = (values: ForgetPasswordFormValues): void => {
     const callback = postData(values);
     onFetch(callback);
   };
 
-  const FormContainer = () => {
+  const FormContainer: React.FC = () => {
     return (
       <Loading isLoading={isLoading}>
         <Form
