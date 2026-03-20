@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, ReactNode } from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { crud } from '@/redux/crud/actions';
@@ -10,19 +10,49 @@ import useLanguage from '@/locale/useLanguage';
 import { Button, Form } from 'antd';
 import Loading from '@/components/Loading';
 
-export default function CreateForm({ config, formElements, withUpload = false }) {
+interface CrudBoxAction {
+  open: () => void;
+  close: () => void;
+  collapse?: () => void;
+}
+
+interface CreateFormConfig {
+  entity: string;
+}
+
+interface CreateFormProps {
+  config: CreateFormConfig;
+  formElements: ReactNode;
+  withUpload?: boolean;
+}
+
+interface FieldsValue {
+  file?: { originFileObj: File }[];
+  [key: string]: unknown;
+}
+
+export default function CreateForm({ config, formElements, withUpload = false }: CreateFormProps): JSX.Element {
   let { entity } = config;
   const dispatch = useDispatch();
-  const { isLoading, isSuccess } = useSelector(selectCreatedItem);
+  const { isLoading, isSuccess } = useSelector(selectCreatedItem) as {
+    result: unknown;
+    current: unknown;
+    isLoading: boolean;
+    isSuccess: boolean;
+  };
   const { crudContextAction } = useCrudContext();
-  const { panel, collapsedBox, readBox } = crudContextAction;
+  const { panel, collapsedBox, readBox } = crudContextAction as {
+    panel: CrudBoxAction;
+    collapsedBox: CrudBoxAction;
+    readBox: CrudBoxAction;
+  };
   const [form] = Form.useForm();
   const translate = useLanguage();
-  const onSubmit = (fieldsValue) => {
+  const onSubmit = (fieldsValue: FieldsValue): void => {
     // Manually trim values before submission
 
     if (fieldsValue.file && withUpload) {
-      fieldsValue.file = fieldsValue.file[0].originFileObj;
+      fieldsValue.file = fieldsValue.file[0].originFileObj as unknown as { originFileObj: File }[];
     }
 
     // const trimmedValues = Object.keys(fieldsValue).reduce((acc, key) => {
@@ -30,7 +60,7 @@ export default function CreateForm({ config, formElements, withUpload = false })
     //   return acc;
     // }, {});
 
-    dispatch(crud.create({ entity, jsonData: fieldsValue, withUpload }));
+    dispatch(crud.create({ entity, jsonData: fieldsValue, withUpload }) as unknown as Parameters<typeof dispatch>[0]);
   };
 
   useEffect(() => {
@@ -39,8 +69,8 @@ export default function CreateForm({ config, formElements, withUpload = false })
       collapsedBox.open();
       panel.open();
       form.resetFields();
-      dispatch(crud.resetAction({ actionType: 'create' }));
-      dispatch(crud.list({ entity }));
+      dispatch(crud.resetAction({ actionType: 'create' }) as unknown as Parameters<typeof dispatch>[0]);
+      dispatch(crud.list({ entity }) as unknown as Parameters<typeof dispatch>[0]);
     }
   }, [isSuccess]);
 
