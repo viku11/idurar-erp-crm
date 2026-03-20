@@ -5,7 +5,12 @@ import { Divider, Row, Col } from 'antd';
 
 const { Content } = Layout;
 
-const TopCard = ({ title, cardContent }) => {
+interface TopCardProps {
+  title: React.ReactNode;
+  cardContent: React.ReactNode;
+}
+
+const TopCard: React.FC<TopCardProps> = ({ title, cardContent }) => {
   return (
     <div
       className="whiteBox shadow"
@@ -28,12 +33,19 @@ const TopCard = ({ title, cardContent }) => {
   );
 };
 
+interface SettingsLayoutProps {
+  children: React.ReactNode;
+  topCardTitle: React.ReactNode;
+  topCardContent: React.ReactNode;
+  bottomCardContent: React.ReactNode;
+}
+
 export default function SettingsLayout({
   children,
   topCardTitle,
   topCardContent,
   bottomCardContent,
-}) {
+}: SettingsLayoutProps): React.JSX.Element {
   return (
     <Layout className="site-layout">
       <Content
