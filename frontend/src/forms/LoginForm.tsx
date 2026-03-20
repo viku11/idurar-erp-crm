@@ -4,7 +4,7 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons';
 
 import useLanguage from '@/locale/useLanguage';
 
-export default function LoginForm() {
+export default function LoginForm(): React.JSX.Element {
   const translate = useLanguage();
   return (
     <div>
