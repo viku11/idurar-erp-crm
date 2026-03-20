@@ -1,7 +1,11 @@
 import { ProfileContextProvider } from '@/context/profileContext';
 import React from 'react';
 
-const ProfileLayout = ({ children }) => {
+interface ProfileLayoutProps {
+  children: React.ReactNode;
+}
+
+const ProfileLayout: React.FC<ProfileLayoutProps> = ({ children }) => {
   return <ProfileContextProvider>{children}</ProfileContextProvider>;
 };
 
