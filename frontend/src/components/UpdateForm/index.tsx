@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import dayjs from 'dayjs';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,11 +11,42 @@ import useLanguage from '@/locale/useLanguage';
 import { Button, Form } from 'antd';
 import Loading from '@/components/Loading';
 
-export default function UpdateForm({ config, formElements, withUpload = false }) {
+interface UpdateFormConfig {
+  entity: string;
+}
+
+interface UpdateFormProps {
+  config: UpdateFormConfig;
+  formElements: React.ReactNode;
+  withUpload?: boolean;
+}
+
+interface CurrentRecord {
+  _id: string;
+  birthday?: string;
+  date?: string;
+  expiredDate?: string;
+  created?: string;
+  updated?: string;
+  [key: string]: unknown;
+}
+
+interface UpdatedItemState {
+  current: CurrentRecord | null;
+  isLoading: boolean;
+  isSuccess: boolean;
+}
+
+interface FieldsValue {
+  file?: Array<{ originFileObj: File }>;
+  [key: string]: unknown;
+}
+
+export default function UpdateForm({ config, formElements, withUpload = false }: UpdateFormProps): React.JSX.Element {
   let { entity } = config;
   const translate = useLanguage();
   const dispatch = useDispatch();
-  const { current, isLoading, isSuccess } = useSelector(selectUpdatedItem);
+  const { current, isLoading, isSuccess } = useSelector(selectUpdatedItem) as UpdatedItemState;
 
   const { state, crudContextAction } = useCrudContext();
 
@@ -23,56 +54,56 @@ export default function UpdateForm({ config, formElements, withUpload = false })
 
   const { panel, collapsedBox, readBox } = crudContextAction;
 
-  const showCurrentRecord = () => {
+  const showCurrentRecord = (): void => {
     readBox.open();
   };
 
   /////
   const [form] = Form.useForm();
 
-  const onSubmit = (fieldsValue) => {
-    const id = current._id;
+  const onSubmit = (fieldsValue: FieldsValue): void => {
+    const id = (current as CurrentRecord)._id;
 
     if (fieldsValue.file && withUpload) {
-      fieldsValue.file = fieldsValue.file[0].originFileObj;
+      fieldsValue.file = fieldsValue.file[0].originFileObj as unknown as Array<{ originFileObj: File }>;
     }
     // const trimmedValues = Object.keys(fieldsValue).reduce((acc, key) => {
     //   acc[key] = typeof fieldsValue[key] === 'string' ? fieldsValue[key].trim() : fieldsValue[key];
     //   return acc;
     // }, {});
-    dispatch(crud.update({ entity, id, jsonData: fieldsValue, withUpload }));
+    dispatch(crud.update({ entity, id, jsonData: fieldsValue, withUpload }) as unknown as Parameters<typeof dispatch>[0]);
   };
   useEffect(() => {
     if (current) {
-      let newValues = { ...current };
+      let newValues = { ...current } as Record<string, unknown>;
       if (newValues.birthday) {
         newValues = {
           ...newValues,
-          birthday: dayjs(newValues['birthday']).format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+          birthday: dayjs(newValues['birthday'] as string).format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
         };
       }
       if (newValues.date) {
         newValues = {
           ...newValues,
-          date: dayjs(newValues['date']).format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+          date: dayjs(newValues['date'] as string).format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
         };
       }
       if (newValues.expiredDate) {
         newValues = {
           ...newValues,
-          expiredDate: dayjs(newValues['expiredDate']).format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+          expiredDate: dayjs(newValues['expiredDate'] as string).format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
         };
       }
       if (newValues.created) {
         newValues = {
           ...newValues,
-          created: dayjs(newValues['created']).format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+          created: dayjs(newValues['created'] as string).format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
         };
       }
       if (newValues.updated) {
         newValues = {
           ...newValues,
-          updated: dayjs(newValues['updated']).format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+          updated: dayjs(newValues['updated'] as string).format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
         };
       }
       form.resetFields();
@@ -86,14 +117,14 @@ export default function UpdateForm({ config, formElements, withUpload = false })
       collapsedBox.open();
       panel.open();
       form.resetFields();
-      dispatch(crud.resetAction({ actionType: 'update' }));
-      dispatch(crud.list({ entity }));
+      dispatch(crud.resetAction({ actionType: 'update' }) as unknown as Parameters<typeof dispatch>[0]);
+      dispatch(crud.list({ entity }) as unknown as Parameters<typeof dispatch>[0]);
     }
   }, [isSuccess]);
 
   const { isEditBoxOpen } = state;
 
-  const show = isEditBoxOpen ? { display: 'block', opacity: 1 } : { display: 'none', opacity: 0 };
+  const show = isEditBoxOpen ? { display: 'block' as const, opacity: 1 } : { display: 'none' as const, opacity: 0 };
   return (
     <div style={show}>
       <Loading isLoading={isLoading}>
