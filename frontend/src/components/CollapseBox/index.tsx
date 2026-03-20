@@ -1,7 +1,12 @@
 import React from 'react';
 import { Row, Col } from 'antd';
 
-const CollapseBoxButton = ({ onChange, title }) => {
+interface CollapseBoxButtonProps {
+  onChange: React.MouseEventHandler<HTMLDivElement>;
+  title: React.ReactNode;
+}
+
+const CollapseBoxButton: React.FC<CollapseBoxButtonProps> = ({ onChange, title }) => {
   return (
     <div className="collapseBoxHeader" onClick={onChange}>
       {title}
@@ -9,8 +14,13 @@ const CollapseBoxButton = ({ onChange, title }) => {
   );
 };
 
-const TopCollapseBox = ({ isOpen, children }) => {
-  const show = isOpen ? { display: 'block', opacity: 1 } : { display: 'none', opacity: 0 };
+interface CollapseBoxPanelProps {
+  isOpen: boolean;
+  children: React.ReactNode;
+}
+
+const TopCollapseBox: React.FC<CollapseBoxPanelProps> = ({ isOpen, children }) => {
+  const show: React.CSSProperties = isOpen ? { display: 'block', opacity: 1 } : { display: 'none', opacity: 0 };
   return (
     <div className="TopCollapseBox">
       <div style={show}>
@@ -22,8 +32,8 @@ const TopCollapseBox = ({ isOpen, children }) => {
   );
 };
 
-const BottomCollapseBox = ({ isOpen, children }) => {
-  const show = isOpen ? { display: 'none', opacity: 0 } : { display: 'block', opacity: 1 };
+const BottomCollapseBox: React.FC<CollapseBoxPanelProps> = ({ isOpen, children }) => {
+  const show: React.CSSProperties = isOpen ? { display: 'none', opacity: 0 } : { display: 'block', opacity: 1 };
   return (
     <div className="BottomCollapseBox">
       <div style={show}>
@@ -35,14 +45,22 @@ const BottomCollapseBox = ({ isOpen, children }) => {
   );
 };
 
+interface CollapseBoxProps {
+  topContent: React.ReactNode;
+  bottomContent: React.ReactNode;
+  buttonTitle: React.ReactNode;
+  isCollapsed: boolean;
+  onCollapse: React.MouseEventHandler<HTMLDivElement>;
+}
+
 export default function CollapseBox({
   topContent,
   bottomContent,
   buttonTitle,
   isCollapsed,
   onCollapse,
-}) {
-  const collapsed = isCollapsed ? 'collapsed' : '';
+}: CollapseBoxProps): React.JSX.Element {
+  const collapsed: string = isCollapsed ? 'collapsed' : '';
   return (
     <>
       <TopCollapseBox isOpen={isCollapsed}>{topContent}</TopCollapseBox>
