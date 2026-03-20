@@ -13,21 +13,36 @@ import { useLayoutEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 
-export default function UpdateQuoteModule({ config }) {
+interface ReadItemState {
+  result: Record<string, unknown> | null;
+  isSuccess: boolean;
+  isLoading: boolean;
+}
+
+interface UpdateQuoteModuleConfig {
+  entity: string;
+  [key: string]: unknown;
+}
+
+interface UpdateQuoteModuleProps {
+  config: UpdateQuoteModuleConfig;
+}
+
+export default function UpdateQuoteModule({ config }: UpdateQuoteModuleProps) {
   const dispatch = useDispatch();
 
   const { id } = useParams();
   const navigate = useNavigate();
 
   useLayoutEffect(() => {
-    dispatch(erp.read({ entity: config.entity, id }));
+    dispatch(erp.read({ entity: config.entity, id }) as unknown as never);
   }, [id]);
 
-  const { result: currentResult, isSuccess, isLoading = true } = useSelector(selectReadItem);
+  const { result: currentResult, isSuccess, isLoading = true } = useSelector(selectReadItem) as unknown as ReadItemState;
 
   useLayoutEffect(() => {
     if (currentResult) {
-      dispatch(erp.currentAction({ actionType: 'update', data: currentResult }));
+      dispatch(erp.currentAction({ actionType: 'update', data: currentResult }) as unknown as never);
     }
   }, [currentResult]);
 
