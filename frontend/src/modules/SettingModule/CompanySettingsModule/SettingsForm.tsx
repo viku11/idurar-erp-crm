@@ -1,9 +1,15 @@
+import React from 'react';
 import { Form, Input, InputNumber, Select, Switch } from 'antd';
 import { CloseOutlined, CheckOutlined } from '@ant-design/icons';
 import useLanguage from '@/locale/useLanguage';
-import { useSelector } from 'react-redux';
 
-const formItems = [
+interface FormItem {
+  settingKey: string;
+  label?: string;
+  valueType: 'string' | 'number' | 'boolean' | 'array';
+}
+
+const formItems: FormItem[] = [
   {
     settingKey: 'company_name',
     valueType: 'string',
@@ -47,12 +53,12 @@ const formItems = [
   },
 ];
 
-export default function SettingForm() {
+export default function SettingForm(): React.ReactElement {
   const translate = useLanguage();
 
   return (
     <div>
-      {formItems.map((item) => {
+      {formItems.map((item: FormItem) => {
         return (
           <Form.Item
             key={item.settingKey}
