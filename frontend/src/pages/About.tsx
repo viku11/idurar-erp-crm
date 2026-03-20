@@ -1,8 +1,9 @@
+import React from 'react';
 import { Button, Result } from 'antd';
 
 import useLanguage from '@/locale/useLanguage';
 
-const About = () => {
+const About: React.FC = () => {
   const translate = useLanguage();
   return (
     <Result
