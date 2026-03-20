@@ -1,6 +1,12 @@
+import React from 'react';
 import { Tabs, Row, Col } from 'antd';
+import type { TabNavListProps } from 'rc-tabs/lib/TabNavList';
 
-const SettingsLayout = ({ children }) => {
+interface SettingsLayoutProps {
+  children: React.ReactNode;
+}
+
+const SettingsLayout: React.FC<SettingsLayoutProps> = ({ children }) => {
   return (
     <Col className="gutter-row" order={0}>
       <div className="whiteBox shadow" style={{ minHeight: '480px' }}>
@@ -10,7 +16,11 @@ const SettingsLayout = ({ children }) => {
   );
 };
 
-const TopCard = ({ pageTitle }) => {
+interface TopCardProps {
+  pageTitle: string;
+}
+
+const TopCard: React.FC<TopCardProps> = ({ pageTitle }) => {
   return (
     <div
       className="whiteBox shadow"
@@ -29,7 +39,12 @@ const TopCard = ({ pageTitle }) => {
   );
 };
 
-const RightMenu = ({ children, pageTitle }) => {
+interface RightMenuProps {
+  children: React.ReactNode;
+  pageTitle: string;
+}
+
+const RightMenu: React.FC<RightMenuProps> = ({ children, pageTitle }) => {
   return (
     <Col
       className="gutter-row"
@@ -49,8 +64,21 @@ const RightMenu = ({ children, pageTitle }) => {
   );
 };
 
-export default function TabsContent({ content, defaultActiveKey, pageTitle }) {
-  const items = content.map((item, index) => {
+interface ContentItem {
+  key?: string;
+  label: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+}
+
+interface TabsContentProps {
+  content: ContentItem[];
+  defaultActiveKey: string;
+  pageTitle: string;
+}
+
+export default function TabsContent({ content, defaultActiveKey, pageTitle }: TabsContentProps): React.ReactElement {
+  const items = content.map((item: ContentItem, index: number) => {
     return {
       key: item.key ? item.key : index + '_' + item.label.replace(/ /g, '_'),
       label: (
@@ -62,7 +90,7 @@ export default function TabsContent({ content, defaultActiveKey, pageTitle }) {
     };
   });
 
-  const renderTabBar = (props, DefaultTabBar) => (
+  const renderTabBar = (props: TabNavListProps, DefaultTabBar: React.ComponentType<TabNavListProps>): React.ReactElement => (
     <RightMenu pageTitle={pageTitle}>
       <DefaultTabBar {...props} />
     </RightMenu>
