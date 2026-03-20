@@ -2,7 +2,21 @@ import { useMemo } from 'react';
 import { Col, Progress, Spin } from 'antd';
 import useLanguage from '@/locale/useLanguage';
 
-const colours = {
+type ColourKey =
+  | 'draft'
+  | 'sent'
+  | 'pending'
+  | 'unpaid'
+  | 'overdue'
+  | 'partially'
+  | 'paid'
+  | 'declined'
+  | 'accepted'
+  | 'cyan'
+  | 'purple'
+  | 'expired';
+
+const colours: Record<ColourKey, string> = {
   draft: '#595959',
   sent: '#1890ff',
   pending: '#1890ff',
@@ -17,7 +31,12 @@ const colours = {
   expired: '#614700',
 };
 
-const defaultStatistics = [
+interface StatisticItem {
+  tag: string;
+  value: number;
+}
+
+const defaultStatistics: StatisticItem[] = [
   {
     tag: 'draft',
     value: 0,
@@ -44,7 +63,7 @@ const defaultStatistics = [
   },
 ];
 
-const defaultInvoiceStatistics = [
+const defaultInvoiceStatistics: StatisticItem[] = [
   {
     tag: 'draft',
     value: 0,
@@ -71,7 +90,12 @@ const defaultInvoiceStatistics = [
   },
 ];
 
-const PreviewState = ({ tag, value }) => {
+interface PreviewStateProps {
+  tag: string;
+  value: number;
+}
+
+const PreviewState = ({ tag, value }: PreviewStateProps): React.JSX.Element => {
   const translate = useLanguage();
   return (
     <div style={{ color: '#595959', marginBottom: 5 }}>
@@ -89,13 +113,20 @@ const PreviewState = ({ tag, value }) => {
   );
 };
 
+interface PreviewCardProps {
+  title?: string;
+  statistics?: StatisticItem[];
+  isLoading?: boolean;
+  entity?: string;
+}
+
 export default function PreviewCard({
   title = 'Preview',
   statistics = defaultStatistics,
   isLoading = false,
   entity = 'invoice',
-}) {
-  const statisticsMap = useMemo(() => {
+}: PreviewCardProps): React.JSX.Element {
+  const statisticsMap = useMemo((): StatisticItem[] => {
     if (entity === 'invoice') {
       return defaultInvoiceStatistics.map((defaultStat) => {
         const matchedStat = Array.isArray(statistics)
@@ -113,7 +144,7 @@ export default function PreviewCard({
     }
   }, [statistics, entity]);
 
-  const customSort = (a, b) => {
+  const customSort = (a: React.JSX.Element, b: React.JSX.Element): number => {
     const colorOrder = Object.values(colours);
     const indexA = colorOrder.indexOf(a.props.color);
     const indexB = colorOrder.indexOf(b.props.color);
