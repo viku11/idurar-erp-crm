@@ -1,8 +1,7 @@
 import React from 'react';
 import { Form, Input, InputNumber } from 'antd';
 
-export default function InventoryForm() {
-  // Renamed to InventoryForm for clarity
+export default function InventoryForm(): React.ReactElement {
   return (
     <>
       <Form.Item
@@ -26,7 +25,7 @@ export default function InventoryForm() {
             required: true,
             message: 'Please input Quantity!',
             type: 'number',
-            min: 0, // Ensure non-negative numbers
+            min: 0,
           },
         ]}
       >
@@ -41,13 +40,15 @@ export default function InventoryForm() {
             required: true,
             message: 'Please input Unit Price!',
             type: 'number',
-            min: 0, // Ensure non-negative numbers
+            min: 0,
           },
         ]}
       >
         <InputNumber
-          formatter={(value) => `$ ${value}`} // Optional: format value as currency
-          parser={(value) => value.replace(/\$\s?|(,*)/g, '')} // Optional: parse input as number
+          formatter={(value: number | undefined) => `$ ${value ?? ''}`}
+          parser={(value: string | undefined) =>
+            (value ?? '').replace(/\$\s?|(,*)/g, '') as unknown as number
+          }
         />
       </Form.Item>
     </>
