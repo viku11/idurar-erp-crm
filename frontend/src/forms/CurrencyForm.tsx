@@ -2,7 +2,11 @@ import React from 'react';
 import { Switch, Form, Input } from 'antd';
 import { CloseOutlined, CheckOutlined } from '@ant-design/icons';
 
-export default function CurrencyForm({ isUpdateForm = false }) {
+interface CurrencyFormProps {
+  isUpdateForm?: boolean;
+}
+
+export default function CurrencyForm({ isUpdateForm = false }: CurrencyFormProps): React.ReactElement {
   return (
     <>
       <Form.Item
