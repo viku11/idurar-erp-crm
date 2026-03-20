@@ -4,7 +4,11 @@ import { Layout } from 'antd';
 
 const { Content } = Layout;
 
-export default function DashboardLayout({ children }) {
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function DashboardLayout({ children }: DashboardLayoutProps): React.JSX.Element {
   return (
     <div
       style={{
