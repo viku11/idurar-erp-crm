@@ -10,33 +10,63 @@ import { selectSearchedItems } from '@/redux/erp/selectors';
 
 import { Empty } from 'antd';
 
-export default function Search({ config }) {
+interface SearchConfig {
+  displayLabels: string[];
+  searchFields: string[];
+  outputValue?: string;
+}
+
+interface SearchProps {
+  config: {
+    entity: string;
+    searchConfig: SearchConfig;
+  };
+}
+
+interface SearchState {
+  result: Record<string, string>[];
+  isLoading: boolean;
+  isSuccess: boolean;
+}
+
+interface OptionItem {
+  label: string;
+  value?: string;
+}
+
+export default function Search({ config }: SearchProps) {
   let { entity, searchConfig } = config;
 
   const { displayLabels, searchFields, outputValue = '_id' } = searchConfig;
   const dispatch = useDispatch();
   const [value, setValue] = useState('');
-  const [options, setOptions] = useState([]);
+  const [options, setOptions] = useState<OptionItem[]>([]);
 
-  const { erpContextAction } = useErpContext();
+  const { erpContextAction } = useErpContext() as unknown as {
+    erpContextAction: {
+      panel: { open: () => void; close: () => void };
+      collapsedBox: { open: () => void; close: () => void };
+      readBox: { open: () => void; close: () => void };
+    };
+  };
   const { panel, collapsedBox, readBox } = erpContextAction;
 
-  const { result, isLoading, isSuccess } = useSelector(selectSearchedItems);
+  const { result, isLoading, isSuccess } = useSelector(selectSearchedItems) as SearchState;
 
   const isTyping = useRef(false);
 
-  let delayTimer = null;
+  let delayTimer: ReturnType<typeof setTimeout> | null = null;
   useEffect(() => {
     isLoading && setOptions([{ label: '... Searching' }]);
   }, [isLoading]);
-  const onSearch = (searchText) => {
+  const onSearch = (searchText: string) => {
     isTyping.current = true;
 
-    clearTimeout(delayTimer);
+    clearTimeout(delayTimer as ReturnType<typeof setTimeout>);
     delayTimer = setTimeout(function () {
       if (isTyping.current && searchText !== '') {
         dispatch(
-          erp.search(entity, {
+          (erp.search as Function)(entity, {
             question: searchText,
             fields: searchFields,
           })
@@ -46,19 +76,19 @@ export default function Search({ config }) {
     }, 500);
   };
 
-  const onSelect = (data) => {
+  const onSelect = (data: string) => {
     const currentItem = result.find((item) => {
       return item[outputValue] === data;
     });
 
-    dispatch(erp.currentItem({ data: currentItem }));
+    dispatch(erp.currentItem({ data: currentItem }) as never);
     panel.open();
     collapsedBox.open();
     readBox.open();
   };
 
-  const onChange = (data) => {
-    const currentItem = options.find((item) => {
+  const onChange = (data: string) => {
+    const currentItem = options.find((item: OptionItem) => {
       return item.value === data;
     });
     const currentValue = currentItem ? currentItem.label : data;
@@ -66,9 +96,9 @@ export default function Search({ config }) {
   };
 
   useEffect(() => {
-    let optionResults = [];
+    let optionResults: OptionItem[] = [];
 
-    result.map((item) => {
+    result.map((item: Record<string, string>) => {
       const labels = displayLabels.map((x) => item[x]).join(' ');
       optionResults.push({ label: labels, value: item[outputValue] });
     });
