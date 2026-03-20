@@ -3,13 +3,43 @@ import { Select, Space } from 'antd';
 import { request } from '@/request';
 import errorHandler from '@/request/errorHandler';
 
+import type { CSSProperties } from 'react';
+import type { SelectProps } from 'antd';
+
 const { Option } = Select;
 
-const asyncList = (entity) => {
+interface ApiResponse {
+  success: boolean;
+  result: Record<string, unknown>[];
+  message: string;
+}
+
+interface SelectionValue {
+  firstSelectedOption?: Record<string, unknown>;
+  secondSelectedOption?: Record<string, unknown>;
+}
+
+interface MultiStepSelectAsyncProps {
+  firstSelectProps?: SelectProps;
+  secondSelectProps?: SelectProps;
+  firstSelectIdKey?: string;
+  firstSelectValueKey?: string;
+  firstSelectLabelKey?: string;
+  secondSelectIdKey?: string;
+  secondSelectValueKey?: string;
+  secondSelectLabelKey?: string;
+  entityName: string;
+  subEntityName?: string;
+  value?: SelectionValue;
+  onChange?: (value: SelectionValue) => void;
+  style?: CSSProperties;
+}
+
+const asyncList = (entity: string): Promise<ApiResponse> => {
   return request.list({ entity });
 };
 
-const asyncFilter = (entity, options) => {
+const asyncFilter = (entity: string, options: { filter: string; equal: unknown }): Promise<ApiResponse> => {
   return request.filter({ entity, options });
 };
 
@@ -27,11 +57,11 @@ const MultiStepSelectAsync = ({
   value = {},
   onChange,
   style,
-}) => {
+}: MultiStepSelectAsyncProps): JSX.Element => {
   const firstSelectedOption = value.firstSelectedOption;
-  const [firstSelectOptions, setFirstSelectOptions] = useState([]);
-  const [secondSelectOptions, setSecondSelectOptions] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [firstSelectOptions, setFirstSelectOptions] = useState<Record<string, unknown>[]>([]);
+  const [secondSelectOptions, setSecondSelectOptions] = useState<Record<string, unknown>[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -43,7 +73,9 @@ const MultiStepSelectAsync = ({
             equal: firstSelectedOption[firstSelectIdKey],
           });
 
-          setSecondSelectOptions(data?.result?.[0]?.[subEntityName]);
+          setSecondSelectOptions(
+            (data?.result?.[0]?.[subEntityName] as Record<string, unknown>[]) ?? []
+          );
           return;
         }
         const data = await asyncList(entityName);
@@ -64,19 +96,22 @@ const MultiStepSelectAsync = ({
         style={{ width: 200 }}
         {...firstSelectProps}
         loading={!firstSelectedOption ? loading : false}
-        onChange={(value) => {
+        onChange={(selectedValue: unknown) => {
           if (onChange) {
             onChange({
               firstSelectedOption: firstSelectOptions.find(
-                (option) => option[firstSelectValueKey] === value
+                (option) => option[firstSelectValueKey] === selectedValue
               ),
             });
           }
         }}
       >
         {firstSelectOptions.map((option) => (
-          <Option key={option[firstSelectIdKey]} value={option[firstSelectValueKey]}>
-            {option[firstSelectLabelKey]}
+          <Option
+            key={option[firstSelectIdKey] as string}
+            value={option[firstSelectValueKey] as string}
+          >
+            {option[firstSelectLabelKey] as string}
           </Option>
         ))}
       </Select>
@@ -86,20 +121,23 @@ const MultiStepSelectAsync = ({
           loading={loading}
           style={{ width: 200 }}
           {...secondSelectProps}
-          onChange={(value) => {
+          onChange={(selectedValue: unknown) => {
             if (onChange) {
               onChange({
                 firstSelectedOption,
                 secondSelectedOption: secondSelectOptions.find(
-                  (option) => option[secondSelectValueKey] === value
+                  (option) => option[secondSelectValueKey] === selectedValue
                 ),
               });
             }
           }}
         >
           {secondSelectOptions.map((option) => (
-            <Option key={option[secondSelectIdKey]} value={option[secondSelectValueKey]}>
-              {option[secondSelectLabelKey]}
+            <Option
+              key={option[secondSelectIdKey] as string}
+              value={option[secondSelectValueKey] as string}
+            >
+              {option[secondSelectLabelKey] as string}
             </Option>
           ))}
         </Select>
