@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { useCrudContext } from '@/context/crud';
 import { useAppContext } from '@/context/appContext';
 import { Grid, Layout, Drawer } from 'antd';
@@ -8,24 +8,58 @@ import CollapseBox from '../CollapseBox';
 const { useBreakpoint } = Grid;
 const { Sider } = Layout;
 
-export default function SidePanel({ config, topContent, bottomContent, fixHeaderPanel }) {
+interface ContextActionCollapsible {
+  open: () => void;
+  close: () => void;
+  collapse: () => void;
+}
+
+interface CrudContextState {
+  isPanelClose: boolean;
+  isBoxCollapsed: boolean;
+  isModalOpen: boolean;
+  isReadBoxOpen: boolean;
+  isAdvancedBoxOpen: boolean;
+  isEditBoxOpen: boolean;
+}
+
+interface SidePanelConfig {
+  ADD_NEW_ENTITY: ReactNode;
+  PANEL_TITLE: ReactNode;
+}
+
+interface SidePanelProps {
+  config: SidePanelConfig;
+  topContent: ReactNode;
+  bottomContent: ReactNode;
+  fixHeaderPanel: ReactNode;
+}
+
+export default function SidePanel({ config, topContent, bottomContent, fixHeaderPanel }: SidePanelProps): JSX.Element {
   const screens = useBreakpoint();
 
   const { ADD_NEW_ENTITY } = config;
-  const { state, crudContextAction } = useCrudContext();
+  const { state, crudContextAction } = useCrudContext() as {
+    state: CrudContextState;
+    crudContextAction: {
+      panel: ContextActionCollapsible;
+      collapsedBox: ContextActionCollapsible;
+    };
+    crudContextSelector: unknown;
+  };
   const { isPanelClose, isBoxCollapsed } = state;
   const { panel, collapsedBox } = crudContextAction;
-  const [isSidePanelClose, setSidePanel] = useState(isPanelClose);
-  const [leftSider, setLeftSider] = useState('-1px');
-  const [opacitySider, setOpacitySider] = useState(0);
-  const [paddingTopSider, setPaddingTopSider] = useState('20px');
+  const [isSidePanelClose, setSidePanel] = useState<boolean>(isPanelClose);
+  const [leftSider, setLeftSider] = useState<string>('-1px');
+  const [opacitySider, setOpacitySider] = useState<number>(0);
+  const [paddingTopSider, setPaddingTopSider] = useState<string | number>('20px');
 
   // const { state: stateApp, appContextAction } = useAppContext();
   // const { isNavMenuClose } = stateApp;
   // const { navMenu } = appContextAction;
 
   useEffect(() => {
-    let timer = [];
+    let timer: ReturnType<typeof setTimeout>;
     if (isPanelClose) {
       setOpacitySider(0);
       setPaddingTopSider('20px');
@@ -36,7 +70,7 @@ export default function SidePanel({ config, topContent, bottomContent, fixHeader
       }, 200);
     } else {
       setSidePanel(isPanelClose);
-      setLeftSider(0);
+      setLeftSider('0');
       timer = setTimeout(() => {
         setOpacitySider(1);
         setPaddingTopSider(0);
@@ -46,11 +80,11 @@ export default function SidePanel({ config, topContent, bottomContent, fixHeader
     return () => clearTimeout(timer);
   }, [isPanelClose]);
 
-  const collapsePanel = () => {
+  const collapsePanel = (): void => {
     panel.collapse();
   };
 
-  const collapsePanelBox = () => {
+  const collapsePanelBox = (): void => {
     collapsedBox.collapse();
   };
 
