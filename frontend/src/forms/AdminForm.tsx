@@ -1,10 +1,17 @@
+import React from 'react';
 import { Form, Input, Select } from 'antd';
 import { UploadOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons';
 import { message, Upload, Button, Switch } from 'antd';
+import type { RcFile } from 'antd/es/upload';
 
 import useLanguage from '@/locale/useLanguage';
 
-const beforeUpload = (file) => {
+interface AdminFormProps {
+  isUpdateForm?: boolean;
+  isForAdminOwner?: boolean;
+}
+
+const beforeUpload = (file: RcFile): boolean => {
   const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
   if (!isJpgOrPng) {
     message.error('You can only upload JPG/PNG file!');
@@ -16,7 +23,7 @@ const beforeUpload = (file) => {
   return isJpgOrPng && isLt2M;
 };
 
-export default function AdminForm({ isUpdateForm = false, isForAdminOwner = false }) {
+export default function AdminForm({ isUpdateForm = false, isForAdminOwner = false }: AdminFormProps): React.ReactElement {
   const translate = useLanguage();
   return (
     <>
