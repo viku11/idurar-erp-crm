@@ -1,10 +1,12 @@
 import React from 'react';
 import { Layout, Row, Col } from 'antd';
 
-import { useSelector } from 'react-redux';
-import { Content } from 'antd/lib/layout/layout';
+interface AuthLayoutProps {
+  sideContent: React.ReactNode;
+  children: React.ReactNode;
+}
 
-export default function AuthLayout({ sideContent, children }) {
+export default function AuthLayout({ sideContent, children }: AuthLayoutProps) {
   return (
     <Layout>
       <Row>
