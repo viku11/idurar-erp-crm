@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { settingsAction } from '@/redux/settings/actions';
@@ -9,18 +9,39 @@ import Loading from '@/components/Loading';
 import useLanguage from '@/locale/useLanguage';
 import { notification } from 'antd';
 
-export default function UpdateSettingForm({ config, children, withUpload, uploadSettingKey }) {
-  let { entity, settingsCategory } = config;
+interface UpdateSettingFormConfig {
+  entity: string;
+  settingsCategory: string;
+}
+
+interface UpdateSettingFormProps {
+  config: UpdateSettingFormConfig;
+  children: React.ReactNode;
+  withUpload?: boolean;
+  uploadSettingKey?: string;
+}
+
+interface SettingsState {
+  result: Record<string, Record<string, unknown>>;
+  isLoading: boolean;
+}
+
+interface FieldsValue extends Record<string, unknown> {
+  file?: Array<{ originFileObj: File }>;
+}
+
+export default function UpdateSettingForm({ config, children, withUpload, uploadSettingKey }: UpdateSettingFormProps) {
+  const { entity, settingsCategory } = config;
   const dispatch = useDispatch();
-  const { result, isLoading } = useSelector(selectSettings);
+  const { result, isLoading } = useSelector(selectSettings) as SettingsState;
   const translate = useLanguage();
   const [form] = Form.useForm();
 
-  const onSubmit = (fieldsValue) => {
-    console.log('🚀 ~ onSubmit ~ fieldsValue:', fieldsValue);
+  const onSubmit = (fieldsValue: FieldsValue): void => {
+    console.log('\u{1F680} ~ onSubmit ~ fieldsValue:', fieldsValue);
     if (withUpload) {
       if (fieldsValue.file) {
-        fieldsValue.file = fieldsValue.file[0].originFileObj;
+        fieldsValue.file = fieldsValue.file[0].originFileObj as unknown as Array<{ originFileObj: File }>;
       } else {
         notification.error({
           message: translate('Please select a file to upload.'),
@@ -28,16 +49,16 @@ export default function UpdateSettingForm({ config, children, withUpload, upload
         return;
       } 
       dispatch(
-        settingsAction.upload({ entity, settingKey: uploadSettingKey, jsonData: fieldsValue })
+        settingsAction.upload({ entity, settingKey: uploadSettingKey, jsonData: fieldsValue }) as never
       );
     } else {
-      const settings = [];
+      const settings: Array<{ settingKey: string; settingValue: unknown }> = [];
 
       for (const [key, value] of Object.entries(fieldsValue)) {
         settings.push({ settingKey: key, settingValue: value });
       }
 
-      dispatch(settingsAction.updateMany({ entity, jsonData: { settings } }));
+      dispatch(settingsAction.updateMany({ entity, jsonData: { settings } }) as never);
     }
   };
 
@@ -48,7 +69,7 @@ export default function UpdateSettingForm({ config, children, withUpload, upload
     const current = result[settingsCategory];
 
     form.setFieldsValue(current);
-  }, [result]);
+  }, [result, settingsCategory, form]);
 
   return (
     <div>
