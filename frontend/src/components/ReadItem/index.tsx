@@ -12,23 +12,50 @@ import { valueByString } from '@/utils/helpers';
 import useLanguage from '@/locale/useLanguage';
 import { useDate } from '@/settings';
 
-export default function ReadItem({ config }) {
+interface ReadColumn {
+  title: string;
+  dataIndex: string;
+  isDate?: boolean;
+}
+
+interface Field {
+  label?: string;
+  dataIndex?: string[];
+  type?: string;
+}
+
+interface ReadItemConfig {
+  readColumns?: ReadColumn[];
+  fields?: Record<string, Field>;
+}
+
+interface ReadItemProps {
+  config: ReadItemConfig;
+}
+
+interface ListItem {
+  propsKey: string;
+  label: string;
+  value: string;
+}
+
+export default function ReadItem({ config }: ReadItemProps): JSX.Element {
   const { dateFormat } = useDate();
   let { readColumns, fields } = config;
   const translate = useLanguage();
-  const { result: currentResult } = useSelector(selectCurrentItem);
-  const { state } = useCrudContext();
+  const { result: currentResult } = useSelector(selectCurrentItem) as { result: Record<string, unknown> | null };
+  const { state } = useCrudContext() as { state: { isReadBoxOpen: boolean }; crudContextAction: unknown; crudContextSelector: unknown };
   const { isReadBoxOpen } = state;
-  const [listState, setListState] = useState([]);
+  const [listState, setListState] = useState<ListItem[]>([]);
 
-  if (fields) readColumns = [...dataForRead({ fields: fields, translate: translate })];
+  if (fields) readColumns = [...dataForRead({ fields: fields, translate: translate })] as ReadColumn[];
   useEffect(() => {
-    const list = [];
-    readColumns.map((props) => {
+    const list: ListItem[] = [];
+    (readColumns as ReadColumn[]).map((props: ReadColumn) => {
       const propsKey = props.dataIndex;
       const propsTitle = props.title;
       const isDate = props.isDate || false;
-      let value = valueByString(currentResult, propsKey);
+      let value: string = valueByString(currentResult, propsKey) as string;
       value = isDate ? dayjs(value).format(dateFormat) : value;
       list.push({ propsKey, label: propsTitle, value: value });
     });
@@ -37,7 +64,7 @@ export default function ReadItem({ config }) {
 
   const show = isReadBoxOpen ? { display: 'block', opacity: 1 } : { display: 'none', opacity: 0 };
 
-  const itemsList = listState.map((item) => {
+  const itemsList = listState.map((item: ListItem) => {
     return (
       <Row key={item.propsKey} gutter={12}>
         <Col className="gutter-row" span={8}>
