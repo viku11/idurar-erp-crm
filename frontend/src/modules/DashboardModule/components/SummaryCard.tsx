@@ -1,9 +1,18 @@
+import React from 'react';
 import { Tag, Divider, Row, Col, Spin, Tooltip } from 'antd';
 import { useMoney } from '@/settings';
 import { selectMoneyFormat } from '@/redux/settings/selectors';
 import { useSelector } from 'react-redux';
 
-export default function AnalyticSummaryCard({ title, tagColor, data, prefix, isLoading = false }) {
+interface AnalyticSummaryCardProps {
+  title: string;
+  tagColor?: string;
+  data: number;
+  prefix: React.ReactNode;
+  isLoading?: boolean;
+}
+
+export default function AnalyticSummaryCard({ title, tagColor, data, prefix, isLoading = false }: AnalyticSummaryCardProps) {
   const { moneyFormatter } = useMoney();
   const money_format_settings = useSelector(selectMoneyFormat);
   return (
