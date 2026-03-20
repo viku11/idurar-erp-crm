@@ -1,6 +1,36 @@
 import * as actionTypes from './types';
 
-export const initialState = {
+export interface CrudContextState {
+  isModalOpen: boolean;
+  isPanelClose: boolean;
+  isBoxCollapsed: boolean;
+  isReadBoxOpen: boolean;
+  isAdvancedBoxOpen: boolean;
+  isEditBoxOpen: boolean;
+}
+
+export type CrudActionType =
+  | typeof actionTypes.OPEN_MODAL
+  | typeof actionTypes.CLOSE_MODAL
+  | typeof actionTypes.OPEN_PANEL
+  | typeof actionTypes.CLOSE_PANEL
+  | typeof actionTypes.COLLAPSE_PANEL
+  | typeof actionTypes.OPEN_BOX
+  | typeof actionTypes.CLOSE_BOX
+  | typeof actionTypes.COLLAPSE_BOX
+  | typeof actionTypes.OPEN_READ_BOX
+  | typeof actionTypes.CLOSE_READ_BOX
+  | typeof actionTypes.OPEN_ADVANCED_BOX
+  | typeof actionTypes.CLOSE_ADVANCED_BOX
+  | typeof actionTypes.OPEN_EDIT_BOX
+  | typeof actionTypes.CLOSE_EDIT_BOX
+  | typeof actionTypes.COLLAPSE_READ_BOX;
+
+export interface CrudAction {
+  type: CrudActionType;
+}
+
+export const initialState: CrudContextState = {
   isModalOpen: false,
   isPanelClose: true,
   isBoxCollapsed: false,
@@ -9,7 +39,7 @@ export const initialState = {
   isEditBoxOpen: false,
 };
 
-export function contextReducer(state, action) {
+export function contextReducer(state: CrudContextState, action: CrudAction): CrudContextState {
   switch (action.type) {
     case actionTypes.OPEN_MODAL:
       return {
@@ -94,7 +124,7 @@ export function contextReducer(state, action) {
         isReadBoxOpen: !state.isReadBoxOpen,
       };
     default: {
-      throw new Error(`Unhandled action type: ${action.type}`);
+      throw new Error(`Unhandled action type: ${(action as CrudAction).type}`);
     }
   }
 }
