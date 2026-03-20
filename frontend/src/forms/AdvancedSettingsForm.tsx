@@ -6,7 +6,30 @@ import { useState } from 'react';
 
 import useLanguage from '@/locale/useLanguage';
 
-export function SelectType() {
+interface AdvancedSettingsFormProps {
+  isUpdateForm?: boolean;
+}
+
+interface CurrentItemResult {
+  isCoreSetting?: boolean;
+  [key: string]: unknown;
+}
+
+interface CrudCurrentState {
+  result: CurrentItemResult | null;
+}
+
+interface RootState {
+  crud: {
+    current: CrudCurrentState;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+type SettingType = 'number' | 'text' | 'date' | 'select';
+
+export function SelectType(): JSX.Element {
   const translate = useLanguage();
 
   return (
@@ -55,13 +78,13 @@ export function SelectType() {
   );
 }
 
-export default function AdvancedSettingsForm({ isUpdateForm = false }) {
+export default function AdvancedSettingsForm({ isUpdateForm = false }: AdvancedSettingsFormProps): JSX.Element {
   const translate = useLanguage();
-  const { result } = useSelector(selectCurrentItem);
-  const [type, setType] = useState(null);
+  const { result } = useSelector((state: RootState) => selectCurrentItem(state));
+  const [type, setType] = useState<SettingType | null>(null);
   const options = ['number', 'text', 'date'];
 
-  const handleChange = (value) => {
+  const handleChange = (value: SettingType): void => {
     setType(value);
   };
   return (
@@ -177,7 +200,7 @@ export default function AdvancedSettingsForm({ isUpdateForm = false }) {
         initialValue={true}
       >
         <Switch
-          disabled={result ? result.isCoreSetting : false}
+          disabled={result ? (result as CurrentItemResult).isCoreSetting : false}
           checkedChildren={<CheckOutlined />}
           unCheckedChildren={<CloseOutlined />}
         />
