@@ -1,22 +1,58 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { DatePicker, Input, Form, Select, InputNumber, Switch, Tag } from 'antd';
+import type { Rule } from 'antd/es/form';
 
 import { CloseOutlined, CheckOutlined } from '@ant-design/icons';
 import useLanguage from '@/locale/useLanguage';
 import { useMoney, useDate } from '@/settings';
 import AutoCompleteAsync from '@/components/AutoCompleteAsync';
 import SelectAsync from '@/components/SelectAsync';
+// @ts-expect-error shortid has no type declarations
 import { generate as uniqueId } from 'shortid';
 
 import { countryList } from '@/utils/countryList';
 
-export default function DynamicForm({ fields, isUpdateForm = false }) {
-  const [feedback, setFeedback] = useState();
+interface FieldOption {
+  value: string;
+  label: string;
+  color?: string;
+}
+
+interface Field {
+  type: string;
+  name?: string;
+  label?: string;
+  required?: boolean;
+  defaultValue?: string;
+  showSearch?: boolean;
+  maxLength?: number;
+  options?: FieldOption[];
+  hasFeedback?: boolean;
+  feedback?: string;
+  disableForUpdate?: boolean;
+  disableForForm?: boolean;
+  entity?: string;
+  displayLabels?: string[];
+  searchFields?: string;
+  outputValue?: string;
+  withRedirect?: boolean;
+  urlToRedirect?: string;
+  redirectLabel?: string;
+  loadDefault?: boolean;
+}
+
+interface DynamicFormProps {
+  fields: Record<string, Field>;
+  isUpdateForm?: boolean;
+}
+
+export default function DynamicForm({ fields, isUpdateForm = false }: DynamicFormProps): JSX.Element {
+  const [feedback, setFeedback] = useState<string | undefined>();
 
   return (
     <div>
       {Object.keys(fields).map((key) => {
-        let field = fields[key];
+        const field = fields[key];
 
         if ((isUpdateForm && !field.disableForUpdate) || !field.disableForForm) {
           field.name = key;
@@ -36,23 +72,55 @@ export default function DynamicForm({ fields, isUpdateForm = false }) {
   );
 }
 
-function FormElement({ field, feedback, setFeedback }) {
+interface FormElementProps {
+  field: Field;
+  feedback?: string;
+  setFeedback?: React.Dispatch<React.SetStateAction<string | undefined>>;
+}
+
+interface SelectWithFeedbackComponentProps {
+  feedbackValue: string | undefined;
+  lanchFeedback: React.Dispatch<React.SetStateAction<string | undefined>>;
+}
+
+function FormElement({ field, feedback, setFeedback }: FormElementProps): JSX.Element {
   const translate = useLanguage();
   const money = useMoney();
   const { dateFormat } = useDate();
 
   const { TextArea } = Input;
 
-  const SelectComponent = () => (
+  const filedType: Record<string, string> = {
+    string: 'string',
+    textarea: 'string',
+    number: 'number',
+    phone: 'string',
+    //boolean: 'boolean',
+    // method: 'method',
+    // regexp: 'regexp',
+    // integer: 'integer',
+    // float: 'float',
+    // array: 'array',
+    // object: 'object',
+    // enum: 'enum',
+    // date: 'date',
+    url: 'url',
+    website: 'url',
+    email: 'email',
+  };
+
+  const getFieldRules = (): Rule[] => [
+    {
+      required: field.required || false,
+      type: filedType[field.type] as Rule extends { type?: infer T } ? T : never ?? 'any',
+    } as Rule,
+  ];
+
+  const SelectComponent = (): JSX.Element => (
     <Form.Item
-      label={translate(field.label)}
+      label={translate(field.label as string)}
       name={field.name}
-      rules={[
-        {
-          required: field.required || false,
-          type: filedType[field.type] ?? 'any',
-        },
-      ]}
+      rules={getFieldRules()}
     >
       <Select
         showSearch={field.showSearch}
@@ -72,16 +140,11 @@ function FormElement({ field, feedback, setFeedback }) {
     </Form.Item>
   );
 
-  const SelectWithTranslationComponent = () => (
+  const SelectWithTranslationComponent = (): JSX.Element => (
     <Form.Item
-      label={translate(field.label)}
+      label={translate(field.label as string)}
       name={field.name}
-      rules={[
-        {
-          required: field.required || false,
-          type: filedType[field.type] ?? 'any',
-        },
-      ]}
+      rules={getFieldRules()}
     >
       <Select
         defaultValue={field.defaultValue}
@@ -101,19 +164,14 @@ function FormElement({ field, feedback, setFeedback }) {
       </Select>
     </Form.Item>
   );
-  const SelectWithFeedbackComponent = ({ feedbackValue, lanchFeedback }) => (
+  const SelectWithFeedbackComponent = ({ feedbackValue, lanchFeedback }: SelectWithFeedbackComponentProps): JSX.Element => (
     <Form.Item
-      label={translate(field.label)}
+      label={translate(field.label as string)}
       name={field.name}
-      rules={[
-        {
-          required: field.required || false,
-          type: filedType[field.type] ?? 'any',
-        },
-      ]}
+      rules={getFieldRules()}
     >
       <Select
-        onSelect={(value) => lanchFeedback(value)}
+        onSelect={(value: string) => lanchFeedback(value)}
         value={feedbackValue}
         style={{
           width: '100%',
@@ -127,25 +185,20 @@ function FormElement({ field, feedback, setFeedback }) {
       </Select>
     </Form.Item>
   );
-  const ColorComponent = () => (
+  const ColorComponent = (): JSX.Element => (
     <Form.Item
-      label={translate(field.label)}
+      label={translate(field.label as string)}
       name={field.name}
-      rules={[
-        {
-          required: field.required || false,
-          type: filedType[field.type] ?? 'any',
-        },
-      ]}
+      rules={getFieldRules()}
     >
       <Select
         showSearch
         defaultValue={field.defaultValue}
         filterOption={(input, option) =>
-          (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+          ((option?.label as string) ?? '').toLowerCase().includes(input.toLowerCase())
         }
         filterSort={(optionA, optionB) =>
-          (optionA?.label ?? '').toLowerCase().startsWith((optionB?.label ?? '').toLowerCase())
+          ((optionA?.label as string) ?? '').toLowerCase().startsWith(((optionB?.label as string) ?? '').toLowerCase()) ? -1 : 1
         }
         style={{
           width: '100%',
@@ -163,16 +216,11 @@ function FormElement({ field, feedback, setFeedback }) {
       </Select>
     </Form.Item>
   );
-  const TagComponent = () => (
+  const TagComponent = (): JSX.Element => (
     <Form.Item
-      label={translate(field.label)}
+      label={translate(field.label as string)}
       name={field.name}
-      rules={[
-        {
-          required: field.required || false,
-          type: filedType[field.type] ?? 'any',
-        },
-      ]}
+      rules={getFieldRules()}
     >
       <Select
         defaultValue={field.defaultValue}
@@ -190,16 +238,11 @@ function FormElement({ field, feedback, setFeedback }) {
       </Select>
     </Form.Item>
   );
-  const ArrayComponent = () => (
+  const ArrayComponent = (): JSX.Element => (
     <Form.Item
-      label={translate(field.label)}
+      label={translate(field.label as string)}
       name={field.name}
-      rules={[
-        {
-          required: field.required || false,
-          type: filedType[field.type] ?? 'any',
-        },
-      ]}
+      rules={getFieldRules()}
     >
       <Select
         mode={'multiple'}
@@ -216,26 +259,21 @@ function FormElement({ field, feedback, setFeedback }) {
       </Select>
     </Form.Item>
   );
-  const CountryComponent = () => (
+  const CountryComponent = (): JSX.Element => (
     <Form.Item
-      label={translate(field.label)}
+      label={translate(field.label as string)}
       name={field.name}
-      rules={[
-        {
-          required: field.required || false,
-          type: filedType[field.type] ?? 'any',
-        },
-      ]}
+      rules={getFieldRules()}
     >
       <Select
         showSearch
         defaultValue={field.defaultValue}
         optionFilterProp="children"
         filterOption={(input, option) =>
-          (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+          ((option?.label as string) ?? '').toLowerCase().includes(input.toLowerCase())
         }
         filterSort={(optionA, optionB) =>
-          (optionA?.label ?? '').toLowerCase().startsWith((optionB?.label ?? '').toLowerCase())
+          ((optionA?.label as string) ?? '').toLowerCase().startsWith(((optionB?.label as string) ?? '').toLowerCase()) ? -1 : 1
         }
         style={{
           width: '100%',
@@ -247,7 +285,7 @@ function FormElement({ field, feedback, setFeedback }) {
             value={language.value}
             label={translate(language.label)}
           >
-            {language?.icon && language?.icon + ' '}
+            {(language as unknown as Record<string, string>)?.icon && (language as unknown as Record<string, string>)?.icon + ' '}
             {translate(language.label)}
           </Select.Option>
         ))}
@@ -255,22 +293,17 @@ function FormElement({ field, feedback, setFeedback }) {
     </Form.Item>
   );
 
-  const SearchComponent = () => {
+  const SearchComponent = (): JSX.Element => {
     return (
       <Form.Item
-        label={translate(field.label)}
+        label={translate(field.label as string)}
         name={field.name}
-        rules={[
-          {
-            required: field.required || false,
-            type: filedType[field.type] ?? 'any',
-          },
-        ]}
+        rules={getFieldRules()}
       >
         <AutoCompleteAsync
-          entity={field.entity}
-          displayLabels={field.displayLabels}
-          searchFields={field.searchFields}
+          entity={field.entity as string}
+          displayLabels={field.displayLabels as string[]}
+          searchFields={field.searchFields as string}
           outputValue={field.outputValue}
           withRedirect={field.withRedirect}
           urlToRedirect={field.urlToRedirect}
@@ -280,11 +313,11 @@ function FormElement({ field, feedback, setFeedback }) {
     );
   };
 
-  const formItemComponent = {
+  const formItemComponent: Record<string, JSX.Element> = {
     select: <SelectComponent />,
     selectWithTranslation: <SelectWithTranslationComponent />,
     selectWithFeedback: (
-      <SelectWithFeedbackComponent lanchFeedback={setFeedback} feedbackValue={feedback} />
+      <SelectWithFeedbackComponent lanchFeedback={setFeedback!} feedbackValue={feedback} />
     ),
     color: <ColorComponent />,
 
@@ -294,7 +327,7 @@ function FormElement({ field, feedback, setFeedback }) {
     search: <SearchComponent />,
   };
 
-  const compunedComponent = {
+  const compunedComponent: Record<string, JSX.Element> = {
     string: (
       <Input autoComplete="off" maxLength={field.maxLength} defaultValue={field.defaultValue} />
     ),
@@ -319,10 +352,10 @@ function FormElement({ field, feedback, setFeedback }) {
     ),
     async: (
       <SelectAsync
-        entity={field.entity}
+        entity={field.entity as string}
         displayLabels={field.displayLabels}
         outputValue={field.outputValue}
-        loadDefault={field.loadDefault}
+        onChange={() => {}}
         withRedirect={field.withRedirect}
         urlToRedirect={field.urlToRedirect}
         redirectLabel={field.redirectLabel}
@@ -340,25 +373,6 @@ function FormElement({ field, feedback, setFeedback }) {
     ),
   };
 
-  const filedType = {
-    string: 'string',
-    textarea: 'string',
-    number: 'number',
-    phone: 'string',
-    //boolean: 'boolean',
-    // method: 'method',
-    // regexp: 'regexp',
-    // integer: 'integer',
-    // float: 'float',
-    // array: 'array',
-    // object: 'object',
-    // enum: 'enum',
-    // date: 'date',
-    url: 'url',
-    website: 'url',
-    email: 'email',
-  };
-
   const customFormItem = formItemComponent[field.type];
   let renderComponent = compunedComponent[field.type];
 
@@ -370,14 +384,9 @@ function FormElement({ field, feedback, setFeedback }) {
   else {
     return (
       <Form.Item
-        label={translate(field.label)}
+        label={translate(field.label as string)}
         name={field.name}
-        rules={[
-          {
-            required: field.required || false,
-            type: filedType[field.type] ?? 'any',
-          },
-        ]}
+        rules={getFieldRules()}
         valuePropName={field.type === 'boolean' ? 'checked' : 'value'}
       >
         {renderComponent}
