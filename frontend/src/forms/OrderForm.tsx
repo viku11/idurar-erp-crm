@@ -1,11 +1,15 @@
-import React from 'react';
 import { Form, Input, Select, InputNumber } from 'antd';
+import type { RuleObject } from 'antd/es/form';
 
 import useLanguage from '@/locale/useLanguage';
 
-export default function OrderForm({ isUpdateForm = false }) {
+interface OrderFormProps {
+  isUpdateForm?: boolean;
+}
+
+export default function OrderForm({ isUpdateForm = false }: OrderFormProps): JSX.Element {
   const translate = useLanguage();
-  const validateEmptyString = (_, value) => {
+  const validateEmptyString = (_: RuleObject, value: string): Promise<void> => {
     if (value && value.trim() === '') {
       return Promise.reject(new Error('Field cannot be empty'));
     }
