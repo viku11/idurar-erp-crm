@@ -3,7 +3,11 @@ import {Switch, Form, Input, InputNumber} from 'antd';
 import {CloseOutlined, CheckOutlined} from '@ant-design/icons';
 import useLanguage from '@/locale/useLanguage';
 
-export default function TaxForm({isUpdateForm = false}) {
+interface TaxFormProps {
+    isUpdateForm?: boolean;
+}
+
+export default function TaxForm({isUpdateForm = false}: TaxFormProps): React.ReactElement {
     const translate = useLanguage();
     return (
         <>
