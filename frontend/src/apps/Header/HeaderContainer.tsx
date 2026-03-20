@@ -1,3 +1,4 @@
+import React from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { Avatar, Dropdown, Layout, Badge, Button } from 'antd';
@@ -14,13 +15,35 @@ import useLanguage from '@/locale/useLanguage';
 
 import UpgradeButton from './UpgradeButton';
 
-export default function HeaderContent() {
-  const currentAdmin = useSelector(selectCurrentAdmin);
+interface Admin {
+  name?: string;
+  surname?: string;
+  email?: string;
+  photo?: string;
+}
+
+interface RootState {
+  auth: {
+    current: Admin;
+    isLoggedIn: boolean;
+    isLoading: boolean;
+    isSuccess: boolean;
+  };
+}
+
+interface DropdownMenuProps {
+  text: string;
+}
+
+export default function HeaderContent(): React.ReactElement {
+  const currentAdmin: Admin | undefined = useSelector(
+    (state: RootState) => selectCurrentAdmin(state) as Admin | undefined
+  );
   const { Header } = Layout;
 
-  const translate = useLanguage();
+  const translate: (value: string) => string = useLanguage();
 
-  const ProfileDropdown = () => {
+  const ProfileDropdown: React.FC = () => {
     const navigate = useNavigate();
     return (
       <div className="profileDropdown" onClick={() => navigate('/profile')}>
@@ -46,17 +69,17 @@ export default function HeaderContent() {
     );
   };
 
-  const DropdownMenu = ({ text }) => {
+  const DropdownMenu: React.FC<DropdownMenuProps> = ({ text }) => {
     return <span style={{}}>{text}</span>;
   };
 
   const items = [
     {
-      label: <ProfileDropdown className="headerDropDownMenu" />,
+      label: <ProfileDropdown />,
       key: 'ProfileDropdown',
     },
     {
-      type: 'divider',
+      type: 'divider' as const,
     },
     {
       icon: <UserOutlined />,
@@ -74,7 +97,7 @@ export default function HeaderContent() {
     },
 
     {
-      type: 'divider',
+      type: 'divider' as const,
     },
 
     {
@@ -101,6 +124,7 @@ export default function HeaderContent() {
         }}
         trigger={['click']}
         placement="bottomRight"
+        // @ts-ignore: 'stye' is a pre-existing typo in the original source (should be 'style')
         stye={{ width: '280px', float: 'right' }}
       >
         {/* <Badge dot> */}
