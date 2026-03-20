@@ -12,6 +12,7 @@ import { erp } from '@/redux/erp/actions';
 import { selectCreatedItem } from '@/redux/erp/selectors';
 
 import calculate from '@/utils/calculate';
+// @ts-ignore shortid lacks type declarations
 import { generate as uniqueId } from 'shortid';
 
 import Loading from '@/components/Loading';
@@ -24,7 +25,47 @@ import {
 
 import { useNavigate } from 'react-router-dom';
 
-function SaveForm({ form }) {
+import type { FormInstance } from 'antd';
+
+interface SaveFormProps {
+  form: FormInstance;
+}
+
+interface ErpItem {
+  quantity?: number;
+  price?: number;
+  offerPrice?: number;
+  total?: number;
+  [key: string]: unknown;
+}
+
+interface FieldsValue {
+  items?: ErpItem[];
+  [key: string]: unknown;
+}
+
+interface CreatedItemState {
+  isLoading: boolean;
+  isSuccess: boolean;
+  result: { _id: string; [key: string]: unknown } | null;
+}
+
+interface CreateItemConfig {
+  entity: string;
+  [key: string]: unknown;
+}
+
+interface CreateFormComponentProps {
+  subTotal: number;
+  offerTotal: number;
+}
+
+interface CreateItemProps {
+  config: CreateItemConfig;
+  CreateForm: React.ComponentType<CreateFormComponentProps>;
+}
+
+function SaveForm({ form }: SaveFormProps) {
   const translate = useLanguage();
   const handelClick = () => {
     form.submit();
@@ -37,21 +78,21 @@ function SaveForm({ form }) {
   );
 }
 
-export default function CreateItem({ config, CreateForm }) {
+export default function CreateItem({ config, CreateForm }: CreateItemProps) {
   const translate = useLanguage();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   useEffect(() => {
-    dispatch(settingsAction.list({ entity: 'setting' }));
+    dispatch(settingsAction.list({ entity: 'setting' }) as unknown as never);
   }, []);
   let { entity } = config;
 
-  const { isLoading, isSuccess, result } = useSelector(selectCreatedItem);
+  const { isLoading, isSuccess, result } = useSelector(selectCreatedItem) as unknown as CreatedItemState;
   const [form] = Form.useForm();
   const [subTotal, setSubTotal] = useState(0);
   const [offerSubTotal, setOfferSubTotal] = useState(0);
-  const handelValuesChange = (changedValues, values) => {
+  const handelValuesChange = (_changedValues: Record<string, unknown>, values: FieldsValue) => {
     const items = values['items'];
     let subTotal = 0;
     let subOfferTotal = 0;
@@ -78,15 +119,15 @@ export default function CreateItem({ config, CreateForm }) {
   useEffect(() => {
     if (isSuccess) {
       form.resetFields();
-      dispatch(erp.resetAction({ actionType: 'create' }));
+      dispatch(erp.resetAction({ actionType: 'create' }) as unknown as never);
       setSubTotal(0);
       setOfferSubTotal(0);
-      navigate(`/${entity.toLowerCase()}/read/${result._id}`);
+      navigate(`/${entity.toLowerCase()}/read/${result!._id}`);
     }
     return () => {};
   }, [isSuccess]);
 
-  const onSubmit = (fieldsValue) => {
+  const onSubmit = (fieldsValue: FieldsValue) => {
     console.log('🚀 ~ onSubmit ~ fieldsValue:', fieldsValue);
     if (fieldsValue) {
       if (fieldsValue.items) {
@@ -100,7 +141,7 @@ export default function CreateItem({ config, CreateForm }) {
         };
       }
     }
-    dispatch(erp.create({ entity, jsonData: fieldsValue }));
+    dispatch(erp.create({ entity, jsonData: fieldsValue }) as unknown as never);
   };
 
   return (
