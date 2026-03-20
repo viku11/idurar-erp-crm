@@ -1,11 +1,22 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React from 'react';
 import { Form, Input, Select } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 
 import useLanguage from '@/locale/useLanguage';
 import { countryList } from '@/utils/countryList';
 
-export default function RegisterForm({ userLocation }) {
+interface CountryItem {
+  label: string;
+  value: string;
+  timeZone?: string[];
+  icon?: string;
+}
+
+interface RegisterFormProps {
+  userLocation: string;
+}
+
+export default function RegisterForm({ userLocation }: RegisterFormProps): React.ReactElement {
   const translate = useLanguage();
 
   return (
@@ -84,18 +95,18 @@ export default function RegisterForm({ userLocation }) {
           showSearch
           defaultOpen={false}
           optionFilterProp="children"
-          filterOption={(input, option) =>
+          filterOption={(input: string, option?: { label?: string }) =>
             (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
           }
-          filterSort={(optionA, optionB) =>
-            (optionA?.label ?? '').toLowerCase().startsWith((optionB?.label ?? '').toLowerCase())
+          filterSort={(optionA: { label?: string }, optionB: { label?: string }) =>
+            (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
           }
           style={{
             width: '100%',
           }}
           size="large"
         >
-          {countryList.map((language) => (
+          {(countryList as CountryItem[]).map((language) => (
             <Select.Option
               key={language.value}
               value={language.value}
