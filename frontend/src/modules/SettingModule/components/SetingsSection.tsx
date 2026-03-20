@@ -1,9 +1,15 @@
+import React from 'react';
 import { Col, Divider, Row, Typography } from 'antd';
-import { useSelector } from 'react-redux';
 
 const { Title, Text } = Typography;
 
-export default function SetingsSection({ title, description, children }) {
+interface SetingsSectionProps {
+  title: React.ReactNode;
+  description: React.ReactNode;
+  children: React.ReactNode;
+}
+
+export default function SetingsSection({ title, description, children }: SetingsSectionProps) {
   return (
     <Row gutter={[24, 24]}>
       <Col span={24}>
