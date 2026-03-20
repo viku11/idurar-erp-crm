@@ -1,11 +1,16 @@
+import React from 'react';
 import { Form, Input } from 'antd';
 import { validatePhoneNumber } from '@/utils/helpers';
 
 import useLanguage from '@/locale/useLanguage';
 
-export default function CustomerForm({ isUpdateForm = false }) {
+interface CustomerFormProps {
+  isUpdateForm?: boolean;
+}
+
+export default function CustomerForm({ isUpdateForm = false }: CustomerFormProps): React.ReactElement {
   const translate = useLanguage();
-  const validateEmptyString = (_, value) => {
+  const validateEmptyString = (_: unknown, value: string): Promise<void> => {
     if (value && value.trim() === '') {
       return Promise.reject(new Error('Field cannot be empty'));
     }
