@@ -4,7 +4,7 @@ import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 
 import useLanguage from '@/locale/useLanguage';
 
-export default function ResetPasswordForm() {
+export default function ResetPasswordForm(): React.JSX.Element {
   return (
     <>
       <Form.Item
@@ -27,8 +27,8 @@ export default function ResetPasswordForm() {
           {
             required: true,
           },
-          ({ getFieldValue }) => ({
-            validator(_, value) {
+          ({ getFieldValue }: { getFieldValue: (name: string) => string }) => ({
+            validator(_: unknown, value: string) {
               if (!value || getFieldValue('password') === value) {
                 return Promise.resolve();
               }
