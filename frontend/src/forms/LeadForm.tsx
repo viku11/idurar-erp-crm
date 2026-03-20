@@ -1,8 +1,9 @@
+import React from 'react';
 import { Form, Input, Select } from 'antd';
 
 import useLanguage from '@/locale/useLanguage';
 
-export default function LeadForm() {
+export default function LeadForm(): React.ReactElement {
   const translate = useLanguage();
   return (
     <>
