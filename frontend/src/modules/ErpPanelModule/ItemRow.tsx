@@ -5,17 +5,40 @@ import { DeleteOutlined } from '@ant-design/icons';
 import { useMoney, useDate } from '@/settings';
 import calculate from '@/utils/calculate';
 
-export default function ItemRow({ field, remove, current = null }) {
-  const [totalState, setTotal] = useState(undefined);
-  const [price, setPrice] = useState(0);
-  const [quantity, setQuantity] = useState(0);
+interface ItemData {
+  quantity: number;
+  price: number;
+}
+
+interface CurrentData {
+  items: Record<number, ItemData>;
+  invoice?: Record<number, ItemData>;
+}
+
+interface FormField {
+  name: number;
+  key: number;
+  fieldKey: number;
+}
+
+interface ItemRowProps {
+  field: FormField;
+  remove: (name: number) => void;
+  current?: CurrentData | null;
+  key?: number;
+}
+
+export default function ItemRow({ field, remove, current = null }: ItemRowProps) {
+  const [totalState, setTotal] = useState<number | undefined>(undefined);
+  const [price, setPrice] = useState<number>(0);
+  const [quantity, setQuantity] = useState<number>(0);
 
   const money = useMoney();
-  const updateQt = (value) => {
-    setQuantity(value);
+  const updateQt = (value: number | null) => {
+    setQuantity(value ?? 0);
   };
-  const updatePrice = (value) => {
-    setPrice(value);
+  const updatePrice = (value: number | null) => {
+    setPrice(value ?? 0);
   };
 
   useEffect(() => {
@@ -103,9 +126,10 @@ export default function ItemRow({ field, remove, current = null }) {
               controls={false}
               addonAfter={money.currency_position === 'after' ? money.currency_symbol : undefined}
               addonBefore={money.currency_position === 'before' ? money.currency_symbol : undefined}
-              formatter={(value) =>
-                money.amountFormatter({ amount: value, currency_code: money.currency_code })
-              }
+              formatter={(value: number | string | undefined) => {
+                const numValue = typeof value === 'string' ? parseFloat(value) : value;
+                return money.amountFormatter({ amount: numValue, currency_code: money.currency_code });
+              }}
             />
           </Form.Item>
         </Form.Item>
