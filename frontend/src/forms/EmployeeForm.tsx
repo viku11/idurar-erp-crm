@@ -1,3 +1,4 @@
+import React from 'react';
 import { Form, Input, Select } from 'antd';
 import { DatePicker } from 'antd';
 import { validatePhoneNumber } from '@/utils/helpers';
@@ -5,9 +6,9 @@ import { useDate } from '@/settings';
 
 import useLanguage from '@/locale/useLanguage';
 
-export default function EmployeeForm() {
-  const translate = useLanguage();
-  const { dateFormat } = useDate();
+export default function EmployeeForm(): React.JSX.Element {
+  const translate: (value: string) => string = useLanguage();
+  const { dateFormat }: { dateFormat: string } = useDate();
 
   return (
     <>
