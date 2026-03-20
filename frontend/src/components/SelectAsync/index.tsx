@@ -3,9 +3,33 @@ import { request } from '@/request';
 import useFetch from '@/hooks/useFetch';
 import { Select, Tag } from 'antd';
 import { useNavigate } from 'react-router-dom';
+// @ts-expect-error shortid has no type declarations
 import { generate as uniqueId } from 'shortid';
 import color from '@/utils/color';
 import useLanguage from '@/locale/useLanguage';
+
+interface OptionField {
+  [key: string]: string | undefined;
+  color?: string;
+}
+
+interface SelectAsyncProps {
+  entity: string;
+  displayLabels?: string[];
+  outputValue?: string;
+  redirectLabel?: string;
+  withRedirect?: boolean;
+  urlToRedirect?: string;
+  placeholder?: string;
+  value?: Record<string, string> | string;
+  onChange: (value: string | Record<string, string>) => void;
+}
+
+interface OptionItem {
+  value: string | OptionField;
+  label: string;
+  color: string | undefined;
+}
 
 const SelectAsync = ({
   entity,
@@ -17,10 +41,10 @@ const SelectAsync = ({
   placeholder = 'select',
   value,
   onChange,
-}) => {
+}: SelectAsyncProps): JSX.Element => {
   const translate = useLanguage();
-  const [selectOptions, setOptions] = useState([]);
-  const [currentValue, setCurrentValue] = useState(undefined);
+  const [selectOptions, setOptions] = useState<OptionField[]>([]);
+  const [currentValue, setCurrentValue] = useState<string | undefined>(undefined);
 
   const navigate = useNavigate();
 
@@ -29,32 +53,32 @@ const SelectAsync = ({
   };
   const { result, isLoading: fetchIsLoading, isSuccess } = useFetch(asyncList);
   useEffect(() => {
-    isSuccess && setOptions(result);
+    isSuccess && setOptions(result as unknown as OptionField[]);
   }, [isSuccess]);
 
-  const labels = (optionField) => {
+  const labels = (optionField: OptionField): string => {
     return displayLabels.map((x) => optionField[x]).join(' ');
   };
   useEffect(() => {
     if (value !== undefined) {
-      const val = value?.[outputValue] ?? value;
-      setCurrentValue(val);
+      const val = (value as Record<string, string>)?.[outputValue] ?? value;
+      setCurrentValue(val as string);
       onChange(val);
     }
   }, [value]);
 
-  const handleSelectChange = (newValue) => {
+  const handleSelectChange = (newValue: string): void => {
     if (newValue === 'redirectURL') {
       navigate(urlToRedirect);
     } else {
-      const val = newValue?.[outputValue] ?? newValue;
+      const val = (newValue as unknown as Record<string, string>)?.[outputValue] ?? newValue;
       setCurrentValue(newValue);
       onChange(val);
     }
   };
 
-  const optionsList = () => {
-    const list = [];
+  const optionsList = (): OptionItem[] => {
+    const list: OptionItem[] = [];
 
     // if (selectOptions.length === 0 && withRedirect) {
     //   const value = 'redirectURL';
@@ -64,7 +88,7 @@ const SelectAsync = ({
     selectOptions.map((optionField) => {
       const value = optionField[outputValue] ?? optionField;
       const label = labels(optionField);
-      const currentColor = optionField[outputValue]?.color ?? optionField?.color;
+      const currentColor = (optionField[outputValue] as unknown as OptionField)?.color ?? optionField?.color;
       const labelColor = color.find((x) => x.color === currentColor);
       list.push({ value, label, color: labelColor?.color });
     });
