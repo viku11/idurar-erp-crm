@@ -1,6 +1,11 @@
+import React from 'react';
 import { ConfigProvider } from 'antd';
 
-export default function Localization({ children }) {
+interface LocalizationProps {
+  children: React.ReactNode;
+}
+
+export default function Localization({ children }: LocalizationProps): React.JSX.Element {
   return (
     <ConfigProvider
       theme={{
