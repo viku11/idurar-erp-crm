@@ -1,8 +1,15 @@
+import React from 'react';
 import { Form, Input, InputNumber, Select, Switch } from 'antd';
 import { CloseOutlined, CheckOutlined } from '@ant-design/icons';
 import useLanguage from '@/locale/useLanguage';
 
-const formItems = [
+interface FormItemConfig {
+  label: string;
+  settingKey: string;
+  valueType: 'string' | 'number' | 'boolean' | 'array';
+}
+
+const formItems: FormItemConfig[] = [
   {
     label: 'last_invoice_number',
     settingKey: 'last_invoice_number',
@@ -20,7 +27,7 @@ const formItems = [
   },
 ];
 
-export default function SettingForm() {
+export default function SettingForm(): React.ReactElement {
   const translate = useLanguage();
 
   return (
