@@ -3,7 +3,11 @@ import { Switch, Form, Input } from 'antd';
 import { CloseOutlined, CheckOutlined } from '@ant-design/icons';
 import useLanguage from '@/locale/useLanguage';
 
-export default function PaymentModeForm({ isUpdateForm = false }) {
+interface PaymentModeFormProps {
+  isUpdateForm?: boolean;
+}
+
+export default function PaymentModeForm({ isUpdateForm = false }: PaymentModeFormProps): React.ReactElement {
   const translate = useLanguage();
   return (
     <>
