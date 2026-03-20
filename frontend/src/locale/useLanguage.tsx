@@ -1,4 +1,4 @@
-const getLabel = (key) => {
+const getLabel = (key: string): string => {
   try {
     const lowerCaseKey = key
       .toLowerCase()
@@ -19,11 +19,11 @@ const getLabel = (key) => {
 
     const result = window.localStorage.getItem('lang');
     if (!result) {
-      let list = {};
+      const list: Record<string, string> = {};
       list[lowerCaseKey] = label;
       window.localStorage.setItem('lang', JSON.stringify(list));
     } else {
-      let list = { ...JSON.parse(result) };
+      const list: Record<string, string> = { ...JSON.parse(result) };
       list[lowerCaseKey] = label;
       window.localStorage.removeItem('lang');
       window.localStorage.setItem('lang', JSON.stringify(list));
@@ -48,8 +48,8 @@ const getLabel = (key) => {
   }
 };
 
-const useLanguage = () => {
-  const translate = (value) => getLabel(value);
+const useLanguage = (): ((value: string) => string) => {
+  const translate = (value: string): string => getLabel(value);
 
   return translate;
 };
