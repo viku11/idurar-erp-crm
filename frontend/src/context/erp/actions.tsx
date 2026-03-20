@@ -1,6 +1,27 @@
 import * as actionTypes from './types';
 
-const contextActions = (dispatch) => {
+type KeyState = 'read' | 'update' | 'create' | 'recordPayment';
+
+type ErpAction =
+  | { type: typeof actionTypes.OPEN_MODAL }
+  | { type: typeof actionTypes.CLOSE_MODAL }
+  | { type: typeof actionTypes.OPEN_PANEL; keyState: KeyState }
+  | { type: typeof actionTypes.CLOSE_PANEL };
+
+interface PanelActions {
+  open: () => void;
+  close: () => void;
+}
+
+interface ContextActions {
+  modal: PanelActions;
+  readPanel: PanelActions;
+  updatePanel: PanelActions;
+  createPanel: PanelActions;
+  recordPanel: PanelActions;
+}
+
+const contextActions = (dispatch: React.Dispatch<ErpAction>): ContextActions => {
   return {
     modal: {
       open: () => {
