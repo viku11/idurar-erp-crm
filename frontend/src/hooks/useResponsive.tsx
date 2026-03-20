@@ -1,8 +1,22 @@
 import { useEffect, useState } from 'react';
 import isBrowser from '@/utils/isBrowser';
-const subscribers = new Set();
-let info;
-let responsiveConfig = {
+
+interface ResponsiveConfig {
+  [key: string]: number;
+}
+
+interface ResponsiveInfo {
+  [key: string]: boolean;
+}
+
+interface UseResponsiveReturn {
+  screenSize: ResponsiveInfo;
+  isMobile: boolean;
+}
+
+const subscribers = new Set<() => void>();
+let info: ResponsiveInfo = {};
+let responsiveConfig: ResponsiveConfig = {
   xs: 0,
   sm: 576,
   isMobile: 768,
@@ -10,7 +24,7 @@ let responsiveConfig = {
   lg: 992,
   xl: 1200,
 };
-function handleResize() {
+function handleResize(): void {
   const oldInfo = info;
   calculate();
   if (oldInfo === info) return;
@@ -19,9 +33,9 @@ function handleResize() {
   }
 }
 let listening = false;
-function calculate() {
+function calculate(): void {
   const width = window.innerWidth;
-  const newInfo = {};
+  const newInfo: ResponsiveInfo = {};
   let shouldUpdate = false;
   for (const key of Object.keys(responsiveConfig)) {
     newInfo[key] = width >= responsiveConfig[key];
@@ -33,18 +47,18 @@ function calculate() {
     info = newInfo;
   }
 }
-export function configResponsive(config) {
+export function configResponsive(config: ResponsiveConfig): void {
   responsiveConfig = config;
   if (info) calculate();
 }
-export default function useResponsive() {
+export default function useResponsive(): UseResponsiveReturn {
   if (isBrowser && !listening) {
     info = {};
     calculate();
     window.addEventListener('resize', handleResize);
     listening = true;
   }
-  const [state, setState] = useState(info);
+  const [state, setState] = useState<ResponsiveInfo>(info);
   useEffect(() => {
     if (!isBrowser) return;
     // In React 18's StrictMode, useEffect perform twice, resize listener is remove, so handleResize is never perform.
@@ -52,7 +66,7 @@ export default function useResponsive() {
     if (!listening) {
       window.addEventListener('resize', handleResize);
     }
-    const subscriber = () => {
+    const subscriber = (): void => {
       setState(info);
     };
     subscribers.add(subscriber);
