@@ -1,9 +1,14 @@
+import React from 'react';
 import { Result, Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
 import useLanguage from '@/locale/useLanguage';
 
-export default function NotFound({ entity = '' }) {
+interface NotFoundProps {
+  entity?: string;
+}
+
+export default function NotFound({ entity = '' }: NotFoundProps): React.ReactElement {
   const translate = useLanguage();
 
   const navigate = useNavigate();
