@@ -7,7 +7,12 @@ import { useMoney, useDate } from '@/settings';
 
 import useLanguage from '@/locale/useLanguage';
 
-export default function PaymentForm({ maxAmount = null, isUpdateForm = false }) {
+interface PaymentFormProps {
+  maxAmount?: number | null;
+  isUpdateForm?: boolean;
+}
+
+export default function PaymentForm({ maxAmount = null, isUpdateForm = false }: PaymentFormProps): React.ReactElement {
   const translate = useLanguage();
   const { TextArea } = Input;
   const money = useMoney();
@@ -46,7 +51,7 @@ export default function PaymentForm({ maxAmount = null, isUpdateForm = false }) 
           className="moneyInput"
           min={0}
           controls={false}
-          max={maxAmount}
+          max={maxAmount ?? undefined}
           addonAfter={money.currency_position === 'after' ? money.currency_symbol : undefined}
           addonBefore={money.currency_position === 'before' ? money.currency_symbol : undefined}
         />
@@ -66,6 +71,7 @@ export default function PaymentForm({ maxAmount = null, isUpdateForm = false }) 
           withRedirect={true}
           urlToRedirect="/payment/mode"
           redirectLabel="Add Payment Mode"
+          onChange={() => {}}
         ></SelectAsync>
       </Form.Item>
       <Form.Item label={translate('Reference')} name="ref">
