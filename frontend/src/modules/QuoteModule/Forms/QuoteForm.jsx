@@ -19,37 +19,8 @@ import calculate from '@/utils/calculate';
 import { useSelector } from 'react-redux';
 import SelectAsync from '@/components/SelectAsync';
 
-interface ItemData {
-  quantity: number;
-  price: number;
-}
-
-interface QuoteCurrent {
-  taxRate?: number;
-  year: number;
-  number: number;
-  items: Record<number, ItemData>;
-  invoice?: Record<number, ItemData>;
-}
-
-interface QuoteFormProps {
-  subTotal?: number;
-  current?: QuoteCurrent | null;
-}
-
-interface FormField {
-  name: number;
-  key: number;
-  fieldKey: number;
-}
-
-interface FinanceSettings {
-  last_quote_number?: number;
-  [key: string]: unknown;
-}
-
-export default function QuoteForm({ subTotal = 0, current = null }: QuoteFormProps): JSX.Element {
-  const { last_quote_number } = useSelector(selectFinanceSettings) as FinanceSettings;
+export default function QuoteForm({ subTotal = 0, current = null }) {
+  const { last_quote_number } = useSelector(selectFinanceSettings);
 
   if (last_quote_number === undefined) {
     return <></>;
@@ -58,38 +29,38 @@ export default function QuoteForm({ subTotal = 0, current = null }: QuoteFormPro
   return <LoadQuoteForm subTotal={subTotal} current={current} />;
 }
 
-function LoadQuoteForm({ subTotal = 0, current = null }: QuoteFormProps): JSX.Element {
+function LoadQuoteForm({ subTotal = 0, current = null }) {
   const translate = useLanguage();
   const { dateFormat } = useDate();
-    const { last_quote_number } = useSelector(selectFinanceSettings) as FinanceSettings;
-    const [lastNumber, setLastNumber] = useState<number>(() => (last_quote_number ?? 0) + 1);
+  const { last_quote_number } = useSelector(selectFinanceSettings);
+  const [lastNumber, setLastNumber] = useState(() => last_quote_number + 1);
 
-    const [total, setTotal] = useState<number>(0);
-    const [taxRate, setTaxRate] = useState<number>(0);
-    const [taxTotal, setTaxTotal] = useState<number>(0);
-    const [currentYear, setCurrentYear] = useState<number>(() => new Date().getFullYear());
-    const handelTaxChange = (value: string | Record<string, string>): void => {
-    setTaxRate(Number(value) / 100);
+  const [total, setTotal] = useState(0);
+  const [taxRate, setTaxRate] = useState(0);
+  const [taxTotal, setTaxTotal] = useState(0);
+  const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
+  const handelTaxChange = (value) => {
+    setTaxRate(value / 100);
   };
 
   useEffect(() => {
-        if (current) {
-          const { taxRate: currentTaxRate = 0, year, number } = current;
-            setTaxRate(currentTaxRate / 100);
-            setCurrentYear(year);
-            setLastNumber(number);
+    if (current) {
+      const { taxRate = 0, year, number } = current;
+      setTaxRate(taxRate / 100);
+      setCurrentYear(year);
+      setLastNumber(number);
     }
   }, [current]);
   useEffect(() => {
-        const currentTotal = calculate.add(calculate.multiply(subTotal, taxRate), subTotal);
-        setTaxTotal(Number.parseFloat(String(calculate.multiply(subTotal, taxRate))));
-        setTotal(Number.parseFloat(String(currentTotal)));
+    const currentTotal = calculate.add(calculate.multiply(subTotal, taxRate), subTotal);
+    setTaxTotal(Number.parseFloat(calculate.multiply(subTotal, taxRate)));
+    setTotal(Number.parseFloat(currentTotal));
   }, [subTotal, taxRate]);
 
-    const addField = useRef<HTMLButtonElement | null>(null);
+  const addField = useRef(false);
 
-    useEffect(() => {
-      addField.current?.click();
+  useEffect(() => {
+    addField.current.click();
   }, []);
 
   return (
@@ -222,10 +193,10 @@ function LoadQuoteForm({ subTotal = 0, current = null }: QuoteFormProps): JSX.El
         </Col>
       </Row>
       <Form.List name="items">
-        {(fields: FormField[], { add, remove }: { add: () => void; remove: (name: number) => void }) => (
+        {(fields, { add, remove }) => (
           <>
-            {fields.map((field: FormField) => (
-              <ItemRow key={field.key} remove={remove} field={field} current={current as { items: Record<number, ItemData>; invoice?: Record<number, ItemData> } | null}></ItemRow>
+            {fields.map((field) => (
+              <ItemRow key={field.key} remove={remove} field={field} current={current}></ItemRow>
             ))}
             <Form.Item>
               <Button
