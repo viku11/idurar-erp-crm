@@ -1,11 +1,10 @@
-import React from 'react';
 import { Form, Select, Input, Switch, InputNumber } from 'antd';
 
 import useLanguage from '@/locale/useLanguage';
 
 import { currencyOptions } from '@/utils/currencyList';
 
-export default function SettingsForm(): React.JSX.Element {
+export default function SettingsForm() {
   const translate = useLanguage();
 
   return (
@@ -21,10 +20,10 @@ export default function SettingsForm(): React.JSX.Element {
       >
         <Select
           showSearch
-          filterOption={(input: string, option?: { label?: string; value?: string }) =>
+          filterOption={(input, option) =>
             (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
           }
-          filterSort={(optionA?: { label?: string; value?: string }, optionB?: { label?: string; value?: string }) =>
+          filterSort={(optionA, optionB) =>
             (optionA?.label ?? '').toLowerCase().startsWith((optionB?.label ?? '').toLowerCase())
           }
           options={currencyOptions()}
