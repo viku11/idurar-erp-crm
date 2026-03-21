@@ -1,19 +1,10 @@
-import { lazy, type ReactNode } from 'react';
+import { lazy } from 'react';
 
 import { Navigate } from 'react-router-dom';
 
-interface RouteObject {
-  path: string;
-  element: ReactNode;
-}
-
-interface RoutesMap {
-  expense: RouteObject[];
-  default: RouteObject[];
-}
-
 const Logout = lazy(() => import('@/pages/Logout.jsx'));
 const NotFound = lazy(() => import('@/pages/NotFound.jsx'));
+
 
 const Customer = lazy(() => import('@/pages/Customer'));
 const Invoice = lazy(() => import('@/pages/Invoice'));
@@ -29,24 +20,12 @@ const PaymentUpdate = lazy(() => import('@/pages/Payment/PaymentUpdate'));
 
 const Settings = lazy(() => import('@/pages/Settings/Settings'));
 
+
 const Profile = lazy(() => import('@/pages/Profile'));
 
 const About = lazy(() => import('@/pages/About'));
 
-// @ts-ignore — Quote pages do not exist yet in the codebase
-const Quote = lazy(() => import('@/pages/Quote'));
-// @ts-ignore — Quote pages do not exist yet in the codebase
-const QuoteCreate = lazy(() => import('@/pages/Quote/QuoteCreate'));
-// @ts-ignore — Quote pages do not exist yet in the codebase
-const QuoteRead = lazy(() => import('@/pages/Quote/QuoteRead'));
-// @ts-ignore — Quote pages do not exist yet in the codebase
-const QuoteUpdate = lazy(() => import('@/pages/Quote/QuoteUpdate'));
-// @ts-ignore — PaymentMode page does not exist yet in the codebase
-const PaymentMode = lazy(() => import('@/pages/Payment/PaymentMode'));
-// @ts-ignore — Taxes page does not exist yet in the codebase
-const Taxes = lazy(() => import('@/pages/Taxes'));
-
-const routes: RoutesMap = {
+let routes = {
   expense: [],
   default: [
     {
