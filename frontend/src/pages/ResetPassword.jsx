@@ -15,34 +15,14 @@ import useLanguage from '@/locale/useLanguage';
 import Loading from '@/components/Loading';
 import AuthModule from '@/modules/AuthModule';
 
-interface AuthState {
-  current: Record<string, unknown>;
-  isLoggedIn: boolean;
-  isLoading: boolean;
-  isSuccess: boolean;
-}
-
-interface RootState {
-  auth: AuthState;
-}
-
-interface ResetPasswordFormValues {
-  password: string;
-}
-
-interface ResetPasswordParams {
-  userId: string;
-  resetToken: string;
-}
-
-const ResetPassword: React.FC = () => {
+const ResetPassword = () => {
   const translate = useLanguage();
-  const { isLoading, isSuccess } = useSelector<RootState, AuthState>(selectAuth);
+  const { isLoading, isSuccess } = useSelector(selectAuth);
   const navigate = useNavigate();
-  const { userId, resetToken } = useParams<keyof ResetPasswordParams>() as ResetPasswordParams;
+  const { userId, resetToken } = useParams();
 
   const dispatch = useDispatch();
-  const onFinish = (values: ResetPasswordFormValues): void => {
+  const onFinish = (values) => {
     dispatch(
       resetPassword({
         resetPasswordData: {
@@ -58,7 +38,7 @@ const ResetPassword: React.FC = () => {
     if (isSuccess) navigate('/');
   }, [isSuccess]);
 
-  const FormContainer: React.FC = () => {
+  const FormContainer = () => {
     return (
       <Loading isLoading={isLoading}>
         <Form
