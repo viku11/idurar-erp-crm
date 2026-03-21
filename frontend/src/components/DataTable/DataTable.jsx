@@ -9,10 +9,7 @@ import {
   ArrowRightOutlined,
   ArrowLeftOutlined,
 } from '@ant-design/icons';
-import type { MenuProps, TablePaginationConfig } from 'antd';
 import { Dropdown, Table, Button, Input } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
-import type { FilterValue, SorterResult, TableCurrentDataSource } from 'antd/es/table/interface';
 import { PageHeader } from '@ant-design/pro-layout';
 
 import { useSelector, useDispatch } from 'react-redux';
@@ -26,67 +23,12 @@ import { generate as uniqueId } from 'shortid';
 
 import { useCrudContext } from '@/context/crud';
 
-interface SearchConfig {
-  searchFields?: string;
-}
-
-interface FieldDefinition {
-  type?: string;
-  label?: string;
-  dataIndex?: string[];
-  disableForTable?: boolean;
-  color?: string;
-  colors?: Record<string, string>;
-  renderAsTag?: boolean;
-  options?: Array<{ value: string; color?: string; label?: string }>;
-}
-
-type DataTableColumn = ColumnsType<Record<string, unknown>>[number];
-
-interface DataTableConfig {
-  entity: string;
-  dataTableColumns: DataTableColumn[];
-  DATATABLE_TITLE: string;
-  fields?: Record<string, FieldDefinition>;
-  searchConfig?: SearchConfig;
-  ADD_NEW_ENTITY?: string;
-}
-
-type MenuItem = NonNullable<MenuProps['items']>[number];
-
-interface PaginationState {
-  current: number;
-  pageSize: number;
-  total: number;
-  showSizeChanger?: boolean;
-}
-
-interface ListResult {
-  items: Record<string, unknown>[];
-  pagination: PaginationState;
-}
-
-interface ListState {
-  result: ListResult;
-  isLoading: boolean;
-  isSuccess: boolean;
-}
-
-interface AddNewItemProps {
-  config: DataTableConfig;
-}
-
-interface DataTableProps {
-  config: DataTableConfig;
-  extra?: MenuItem[];
-}
-
-function AddNewItem({ config }: AddNewItemProps): React.ReactElement {
+function AddNewItem({ config }) {
   const { crudContextAction } = useCrudContext();
   const { collapsedBox, panel } = crudContextAction;
   const { ADD_NEW_ENTITY } = config;
 
-  const handelClick = (): void => {
+  const handelClick = () => {
     panel.open();
     collapsedBox.close();
   };
@@ -97,7 +39,7 @@ function AddNewItem({ config }: AddNewItemProps): React.ReactElement {
     </Button>
   );
 }
-export default function DataTable({ config, extra = [] }: DataTableProps): React.ReactElement {
+export default function DataTable({ config, extra = [] }) {
   let { entity, dataTableColumns, DATATABLE_TITLE, fields, searchConfig } = config;
   const { crudContextAction } = useCrudContext();
   const { panel, collapsedBox, modal, readBox, editBox, advancedBox } = crudContextAction;
@@ -105,7 +47,7 @@ export default function DataTable({ config, extra = [] }: DataTableProps): React
   const { moneyFormatter } = useMoney();
   const { dateFormat } = useDate();
 
-  const items: NonNullable<MenuProps['items']> = [
+  const items = [
     {
       label: translate('Show'),
       key: 'read',
@@ -128,25 +70,25 @@ export default function DataTable({ config, extra = [] }: DataTableProps): React
     },
   ];
 
-  const handleRead = (record: Record<string, unknown>): void => {
+  const handleRead = (record) => {
     dispatch(crud.currentItem({ data: record }));
     panel.open();
     collapsedBox.open();
     readBox.open();
   };
-  function handleEdit(record: Record<string, unknown>): void {
+  function handleEdit(record) {
     dispatch(crud.currentItem({ data: record }));
     dispatch(crud.currentAction({ actionType: 'update', data: record }));
     editBox.open();
     panel.open();
     collapsedBox.open();
   }
-  function handleDelete(record: Record<string, unknown>): void {
+  function handleDelete(record) {
     dispatch(crud.currentAction({ actionType: 'delete', data: record }));
     modal.open();
   }
 
-  function handleUpdatePassword(record: Record<string, unknown>): void {
+  function handleUpdatePassword(record) {
     dispatch(crud.currentItem({ data: record }));
     dispatch(crud.currentAction({ actionType: 'update', data: record }));
     advancedBox.open();
@@ -154,24 +96,24 @@ export default function DataTable({ config, extra = [] }: DataTableProps): React
     collapsedBox.open();
   }
 
-  let dispatchColumns: ColumnsType<Record<string, unknown>> = [];
+  let dispatchColumns = [];
   if (fields) {
     dispatchColumns = [...dataForTable({ fields, translate, moneyFormatter, dateFormat })];
   } else {
     dispatchColumns = [...dataTableColumns];
   }
 
-  const finalColumns: ColumnsType<Record<string, unknown>> = [
+  dataTableColumns = [
     ...dispatchColumns,
     {
       title: '',
       key: 'action',
       fixed: 'right',
-      render: (_: unknown, record: Record<string, unknown>) => (
+      render: (_, record) => (
         <Dropdown
           menu={{
             items,
-            onClick: ({ key }: { key: string }) => {
+            onClick: ({ key }) => {
               switch (key) {
                 case 'read':
                   handleRead(record);
@@ -197,39 +139,31 @@ export default function DataTable({ config, extra = [] }: DataTableProps): React
         >
           <EllipsisOutlined
             style={{ cursor: 'pointer', fontSize: '24px' }}
-            onClick={(e: React.MouseEvent) => e.preventDefault()}
+            onClick={(e) => e.preventDefault()}
           />
         </Dropdown>
       ),
     },
   ];
 
-  const { result: listResult, isLoading: listIsLoading } = useSelector(selectListItems) as ListState;
+  const { result: listResult, isLoading: listIsLoading } = useSelector(selectListItems);
 
   const { pagination, items: dataSource } = listResult;
 
   const dispatch = useDispatch();
 
-  const handelDataTableLoad = useCallback(
-    (
-      pagination: TablePaginationConfig,
-      _filters?: Record<string, FilterValue | null>,
-      _sorter?: SorterResult<Record<string, unknown>> | SorterResult<Record<string, unknown>>[],
-      _extra?: TableCurrentDataSource<Record<string, unknown>>
-    ) => {
-      const options = { page: pagination.current || 1, items: pagination.pageSize || 10 };
-      dispatch(crud.list({ entity, options }));
-    },
-    []
-  );
+  const handelDataTableLoad = useCallback((pagination) => {
+    const options = { page: pagination.current || 1, items: pagination.pageSize || 10 };
+    dispatch(crud.list({ entity, options }));
+  }, []);
 
-  const filterTable = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const filterTable = (e) => {
     const value = e.target.value;
     const options = { q: value, fields: searchConfig?.searchFields || '' };
     dispatch(crud.list({ entity, options }));
   };
 
-  const dispatcher = (): void => {
+  const dispatcher = () => {
     dispatch(crud.list({ entity }));
   };
 
@@ -255,7 +189,7 @@ export default function DataTable({ config, extra = [] }: DataTableProps): React
             placeholder={translate('search')}
             allowClear
           />,
-          <Button onClick={() => handelDataTableLoad({ current: 1, pageSize: 10 })} key={`${uniqueId()}`} icon={<RedoOutlined />}>
+          <Button onClick={handelDataTableLoad} key={`${uniqueId()}`} icon={<RedoOutlined />}>
             {translate('Refresh')}
           </Button>,
 
@@ -266,9 +200,9 @@ export default function DataTable({ config, extra = [] }: DataTableProps): React
         }}
       ></PageHeader>
 
-      <Table<Record<string, unknown>>
-        columns={finalColumns}
-        rowKey={(item: Record<string, unknown>) => item._id as string}
+      <Table
+        columns={dataTableColumns}
+        rowKey={(item) => item._id}
         dataSource={dataSource}
         pagination={pagination}
         loading={listIsLoading}
