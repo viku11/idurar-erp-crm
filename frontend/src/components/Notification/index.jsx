@@ -2,13 +2,8 @@ import React from 'react';
 import { DeleteOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
 
-interface Notification {
-  id: number;
-  text: string;
-}
-
-const Notifications: React.FC = () => {
-  const [notifications, setNotifications] = React.useState<Notification[]>([
+const Notifications = () => {
+  const [notifications, setNotifications] = React.useState([
     { id: 1, text: 'First notificationnnnnnnnnnnnnnnnn' },
     { id: 2, text: 'Second notification' },
     { id: 3, text: 'Third ' },
@@ -17,8 +12,8 @@ const Notifications: React.FC = () => {
     { id: 6, text: 'Sixth notification' },
   ]);
 
-  const deleteNotification = (id: number): void => {
-    const updatedNotifications = notifications.filter((n: Notification) => n.id !== id);
+  const deleteNotification = (id) => {
+    const updatedNotifications = notifications.filter((n) => n.id !== id);
     setNotifications(updatedNotifications);
   };
 
@@ -27,16 +22,12 @@ const Notifications: React.FC = () => {
       <div className="pad20">
         <p className="strong">Notifications</p>
         <Button type="text" shape="circle" className="del-notif">
-          {
-            // @ts-expect-error AntD icon type incompatibility with React 18
-            <DeleteOutlined />
-          }
+          <DeleteOutlined />
         </Button>
       </div>
       <div className="line"></div>
       <div className="notif-list">
         {notifications.map((notification) => (
-          // @ts-expect-error href is not valid on div but preserving original markup
           <div href="/" key={notification.id} className="notification">
             <Button type="text" className="notif-btn">
               <span>{notification.text}</span>
@@ -47,10 +38,7 @@ const Notifications: React.FC = () => {
               shape="circle"
               onClick={() => deleteNotification(notification.id)}
             >
-              {
-                // @ts-expect-error AntD icon type incompatibility with React 18
-                <DeleteOutlined />
-              }
+              <DeleteOutlined />
             </Button>
           </div>
         ))}
