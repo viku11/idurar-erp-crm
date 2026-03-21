@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Form, Button } from 'antd';
 
 import { useSelector, useDispatch } from 'react-redux';
@@ -12,50 +12,18 @@ import PaymentForm from '@/forms/PaymentForm';
 import { useNavigate } from 'react-router-dom';
 import calculate from '@/utils/calculate';
 
-interface InvoiceClient {
-  _id: string;
-}
-
-interface CurrentInvoice {
-  _id: string;
-  credit: number;
-  total: number;
-  discount: number;
-  client: InvoiceClient | null;
-}
-
-interface RecordPaymentState {
-  isLoading: boolean;
-  isSuccess: boolean;
-  current: CurrentInvoice | null;
-}
-
-interface RecordPaymentConfig {
-  entity: string;
-}
-
-interface RecordPaymentProps {
-  config: RecordPaymentConfig;
-}
-
-interface PaymentFieldsValue {
-  [key: string]: unknown;
-  invoice?: string;
-  client?: string;
-}
-
-export default function RecordPayment({ config }: RecordPaymentProps): React.JSX.Element {
+export default function RecordPayment({ config }) {
   const navigate = useNavigate();
   const translate = useLanguage();
   let { entity } = config;
 
   const dispatch = useDispatch();
 
-  const { isLoading, isSuccess, current: currentInvoice } = useSelector(selectRecordPaymentItem) as RecordPaymentState;
+  const { isLoading, isSuccess, current: currentInvoice } = useSelector(selectRecordPaymentItem);
 
   const [form] = Form.useForm();
 
-  const [maxAmount, setMaxAmount] = useState<number>(0);
+  const [maxAmount, setMaxAmount] = useState(0);
   useEffect(() => {
     if (currentInvoice) {
       const { credit, total, discount } = currentInvoice;
@@ -71,10 +39,10 @@ export default function RecordPayment({ config }: RecordPaymentProps): React.JSX
     }
   }, [isSuccess]);
 
-  const onSubmit = (fieldsValue: PaymentFieldsValue): void => {
+  const onSubmit = (fieldsValue) => {
     if (currentInvoice) {
       const { _id: invoice } = currentInvoice;
-      const client = currentInvoice.client ? currentInvoice.client._id : undefined;
+      const client = currentInvoice.client && currentInvoice.client._id;
       fieldsValue = {
         ...fieldsValue,
         invoice,
