@@ -13,14 +13,31 @@ import LoginForm from '@/forms/LoginForm';
 import Loading from '@/components/Loading';
 import AuthModule from '@/modules/AuthModule';
 
-const LoginPage = () => {
+interface AuthState {
+  current: Record<string, unknown>;
+  isLoggedIn: boolean;
+  isLoading: boolean;
+  isSuccess: boolean;
+}
+
+interface RootState {
+  auth: AuthState;
+}
+
+interface LoginFormValues {
+  email: string;
+  password: string;
+  remember: boolean;
+}
+
+const LoginPage: React.FC = () => {
   const translate = useLanguage();
-  const { isLoading, isSuccess } = useSelector(selectAuth);
+  const { isLoading, isSuccess } = useSelector<RootState, AuthState>(selectAuth);
   const navigate = useNavigate();
   // const size = useSize();
 
   const dispatch = useDispatch();
-  const onFinish = (values) => {
+  const onFinish = (values: LoginFormValues): void => {
     dispatch(login({ loginData: values }));
   };
 
@@ -28,7 +45,7 @@ const LoginPage = () => {
     if (isSuccess) navigate('/');
   }, [isSuccess]);
 
-  const FormContainer = () => {
+  const FormContainer: React.FC = () => {
     return (
       <Loading isLoading={isLoading}>
         <Form
