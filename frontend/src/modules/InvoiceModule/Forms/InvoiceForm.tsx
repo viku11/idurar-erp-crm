@@ -6,21 +6,42 @@ import { PlusOutlined } from '@ant-design/icons';
 
 import { DatePicker } from 'antd';
 
+// @ts-ignore
 import AutoCompleteAsync from '@/components/AutoCompleteAsync';
 
+// @ts-ignore
 import ItemRow from '@/modules/ErpPanelModule/ItemRow';
 
+// @ts-ignore
 import MoneyInputFormItem from '@/components/MoneyInputFormItem';
+// @ts-ignore
 import { selectFinanceSettings } from '@/redux/settings/selectors';
+// @ts-ignore
 import { useDate } from '@/settings';
+// @ts-ignore
 import useLanguage from '@/locale/useLanguage';
 
+// @ts-ignore
 import calculate from '@/utils/calculate';
 import { useSelector } from 'react-redux';
+// @ts-ignore
 import SelectAsync from '@/components/SelectAsync';
 
-export default function InvoiceForm({ subTotal = 0, current = null }) {
-  const { last_invoice_number } = useSelector(selectFinanceSettings);
+interface InvoiceCurrentData {
+  taxRate?: number;
+  year: number;
+  number: number;
+}
+
+interface InvoiceFormProps {
+  subTotal?: number;
+  current?: InvoiceCurrentData | null;
+}
+
+export default function InvoiceForm({ subTotal = 0, current = null }: InvoiceFormProps): JSX.Element {
+  const { last_invoice_number } = useSelector(selectFinanceSettings) as {
+    last_invoice_number: number | undefined;
+  };
 
   if (last_invoice_number === undefined) {
     return <></>;
@@ -29,38 +50,40 @@ export default function InvoiceForm({ subTotal = 0, current = null }) {
   return <LoadInvoiceForm subTotal={subTotal} current={current} />;
 }
 
-function LoadInvoiceForm({ subTotal = 0, current = null }) {
-  const translate = useLanguage();
-  const { dateFormat } = useDate();
-  const { last_invoice_number } = useSelector(selectFinanceSettings);
-  const [total, setTotal] = useState(0);
-  const [taxRate, setTaxRate] = useState(0);
-  const [taxTotal, setTaxTotal] = useState(0);
-  const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
-  const [lastNumber, setLastNumber] = useState(() => last_invoice_number + 1);
+function LoadInvoiceForm({ subTotal = 0, current = null }: InvoiceFormProps): JSX.Element {
+  const translate = useLanguage() as (key: string) => string;
+  const { dateFormat } = useDate() as { dateFormat: string };
+  const { last_invoice_number } = useSelector(selectFinanceSettings) as {
+    last_invoice_number: number;
+  };
+  const [total, setTotal] = useState<number>(0);
+  const [taxRate, setTaxRate] = useState<number>(0);
+  const [taxTotal, setTaxTotal] = useState<number>(0);
+  const [currentYear, setCurrentYear] = useState<number>(() => new Date().getFullYear());
+  const [lastNumber, setLastNumber] = useState<number>(() => last_invoice_number + 1);
 
-  const handelTaxChange = (value) => {
+  const handelTaxChange = (value: number): void => {
     setTaxRate(value / 100);
   };
 
   useEffect(() => {
     if (current) {
-      const { taxRate = 0, year, number } = current;
-      setTaxRate(taxRate / 100);
+      const { taxRate: currentTaxRate = 0, year, number } = current;
+      setTaxRate(currentTaxRate / 100);
       setCurrentYear(year);
       setLastNumber(number);
     }
   }, [current]);
   useEffect(() => {
-    const currentTotal = calculate.add(calculate.multiply(subTotal, taxRate), subTotal);
-    setTaxTotal(Number.parseFloat(calculate.multiply(subTotal, taxRate)));
-    setTotal(Number.parseFloat(currentTotal));
+    const currentTotal: number = calculate.add(calculate.multiply(subTotal, taxRate), subTotal);
+    setTaxTotal(calculate.multiply(subTotal, taxRate) as number);
+    setTotal(currentTotal);
   }, [subTotal, taxRate]);
 
-  const addField = useRef(false);
+  const addField = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
-    addField.current.click();
+    addField.current?.click();
   }, []);
 
   return (
@@ -83,6 +106,8 @@ function LoadInvoiceForm({ subTotal = 0, current = null }) {
               redirectLabel={'Add New Client'}
               withRedirect
               urlToRedirect={'/customer'}
+              value={undefined}
+              onChange={undefined}
             />
           </Form.Item>
         </Col>
@@ -194,6 +219,7 @@ function LoadInvoiceForm({ subTotal = 0, current = null }) {
         {(fields, { add, remove }) => (
           <>
             {fields.map((field) => (
+              // @ts-ignore - props come from external untyped module
               <ItemRow key={field.key} remove={remove} field={field} current={current}></ItemRow>
             ))}
             <Form.Item>
@@ -249,6 +275,7 @@ function LoadInvoiceForm({ subTotal = 0, current = null }) {
               <Select
                 value={taxRate}
                 onChange={handelTaxChange}
+                // @ts-ignore - custom props passed to SelectAsync-like component
                 entity={'taxes'}
                 outputValue={'taxValue'}
                 displayLabels={['taxName']}
