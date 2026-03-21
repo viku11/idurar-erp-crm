@@ -8,22 +8,6 @@ import { useNavigate } from 'react-router-dom';
 import { Select, Empty } from 'antd';
 import useLanguage from '@/locale/useLanguage';
 
-interface OptionRecord {
-  [key: string]: string;
-}
-
-interface AutoCompleteAsyncProps {
-  entity: string;
-  displayLabels: string[];
-  searchFields: string;
-  outputValue?: string;
-  redirectLabel?: string;
-  withRedirect?: boolean;
-  urlToRedirect?: string;
-  value?: OptionRecord | string; /// this is for update
-  onChange?: (value: string) => void; /// this is for update
-}
-
 export default function AutoCompleteAsync({
   entity,
   displayLabels,
@@ -34,38 +18,38 @@ export default function AutoCompleteAsync({
   urlToRedirect = '/',
   value, /// this is for update
   onChange, /// this is for update
-}: AutoCompleteAsyncProps): JSX.Element {
+}) {
   const translate = useLanguage();
 
   const addNewValue = { value: 'redirectURL', label: `+ ${translate(redirectLabel)}` };
 
-  const [selectOptions, setOptions] = useState<OptionRecord[]>([]);
-  const [currentValue, setCurrentValue] = useState<string | undefined>(undefined);
+  const [selectOptions, setOptions] = useState([]);
+  const [currentValue, setCurrentValue] = useState(undefined);
 
-  const isUpdating = useRef<boolean>(true);
-  const isSearching = useRef<boolean>(false);
+  const isUpdating = useRef(true);
+  const isSearching = useRef(false);
 
-  const [searching, setSearching] = useState<boolean>(false);
+  const [searching, setSearching] = useState(false);
 
-  const [valToSearch, setValToSearch] = useState<string>('');
-  const [debouncedValue, setDebouncedValue] = useState<string>('');
+  const [valToSearch, setValToSearch] = useState('');
+  const [debouncedValue, setDebouncedValue] = useState('');
 
   const navigate = useNavigate();
 
-  const handleSelectChange = (newValue: string): void => {
+  const handleSelectChange = (newValue) => {
     isUpdating.current = false;
     // setCurrentValue(value[outputValue] || value); // set nested value or value
     // onChange(newValue[outputValue] || newValue);
     if (onChange) {
-      if (newValue) onChange((newValue as unknown as OptionRecord)[outputValue] || newValue);
+      if (newValue) onChange(newValue[outputValue] || newValue);
     }
     if (newValue === 'redirectURL' && withRedirect) {
       navigate(urlToRedirect);
     }
   };
 
-  const handleOnSelect = (value: string): void => {
-    setCurrentValue((value as unknown as OptionRecord)[outputValue] || value); // set nested value or value
+  const handleOnSelect = (value) => {
+    setCurrentValue(value[outputValue] || value); // set nested value or value
   };
 
   const [, cancel] = useDebounce(
@@ -77,14 +61,14 @@ export default function AutoCompleteAsync({
     [valToSearch]
   );
 
-  const asyncSearch = async (options: { q: string; fields: string }): Promise<unknown> => {
+  const asyncSearch = async (options) => {
     return await request.search({ entity, options });
   };
 
   let { onFetch, result, isSuccess, isLoading } = useOnFetch();
 
-  const labels = (optionField: OptionRecord): string => {
-    return displayLabels.map((x: string) => optionField[x]).join(' ');
+  const labels = (optionField) => {
+    return displayLabels.map((x) => optionField[x]).join(' ');
   };
 
   useEffect(() => {
@@ -100,7 +84,7 @@ export default function AutoCompleteAsync({
     };
   }, [debouncedValue]);
 
-  const onSearch = (searchText: string): void => {
+  const onSearch = (searchText) => {
     isSearching.current = true;
     setSearching(true);
     // setOptions([]);
@@ -110,7 +94,7 @@ export default function AutoCompleteAsync({
 
   useEffect(() => {
     if (isSuccess) {
-      setOptions(result as unknown as OptionRecord[]);
+      setOptions(result);
     } else {
       setSearching(false);
       // setCurrentValue(undefined);
@@ -120,9 +104,9 @@ export default function AutoCompleteAsync({
   useEffect(() => {
     // this for update Form , it's for setField
     if (value && isUpdating.current) {
-      setOptions([value as OptionRecord]);
-      setCurrentValue((value as OptionRecord)[outputValue] || (value as string)); // set nested value or value
-      onChange!((value as OptionRecord)[outputValue] || (value as string));
+      setOptions([value]);
+      setCurrentValue(value[outputValue] || value); // set nested value or value
+      onChange(value[outputValue] || value);
       isUpdating.current = false;
     }
   }, [value]);
@@ -147,10 +131,10 @@ export default function AutoCompleteAsync({
       style={{ minWidth: '220px' }}
       // onSelect={handleOnSelect}
     >
-      {selectOptions.map((optionField: OptionRecord) => (
+      {selectOptions.map((optionField) => (
         <Select.Option
-          key={optionField[outputValue] || (optionField as unknown as string)}
-          value={optionField[outputValue] || (optionField as unknown as string)}
+          key={optionField[outputValue] || optionField}
+          value={optionField[outputValue] || optionField}
         >
           {labels(optionField)}
         </Select.Option>
