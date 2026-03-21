@@ -9,6 +9,7 @@ import useLanguage from '@/locale/useLanguage';
 import { erp } from '@/redux/erp/actions';
 
 import calculate from '@/utils/calculate';
+// @ts-ignore shortid lacks type declarations
 import { generate as uniqueId } from 'shortid';
 import { selectUpdatedItem } from '@/redux/erp/selectors';
 import Loading from '@/components/Loading';
@@ -19,7 +20,75 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { settingsAction } from '@/redux/settings/actions';
 // import { StatusTag } from '@/components/Tag';
 
-function SaveForm({ form, translate }) {
+import type { FormInstance } from 'antd';
+
+interface SaveFormProps {
+  form: FormInstance;
+  translate: (key: string) => string;
+}
+
+interface ErpItem {
+  quantity?: number;
+  price?: number;
+  itemName?: string;
+  description?: string;
+  total?: number;
+  [key: string]: unknown;
+}
+
+interface FieldsValue {
+  date?: string;
+  expiredDate?: string;
+  items?: ErpItem[];
+  [key: string]: unknown;
+}
+
+interface ClientData {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+}
+
+interface ErpData {
+  status: string;
+  paymentStatus?: string;
+  client: ClientData;
+  subTotal: number;
+  taxTotal: number;
+  taxRate: number;
+  total: number;
+  credit: number;
+  number: number;
+  year: number;
+  date?: string;
+  expiredDate?: string;
+  items?: ErpItem[];
+  [key: string]: unknown;
+}
+
+interface UpdatedItemState {
+  current: ErpData | null;
+  isLoading: boolean;
+  isSuccess: boolean;
+}
+
+interface UpdateItemConfig {
+  entity: string;
+  [key: string]: unknown;
+}
+
+interface UpdateFormComponentProps {
+  subTotal: number;
+  current: ErpData | null;
+}
+
+interface UpdateItemProps {
+  config: UpdateItemConfig;
+  UpdateForm: React.ComponentType<UpdateFormComponentProps>;
+}
+
+function SaveForm({ form, translate }: SaveFormProps) {
   const handelClick = () => {
     form.submit();
   };
@@ -31,17 +100,17 @@ function SaveForm({ form, translate }) {
   );
 }
 
-export default function UpdateItem({ config, UpdateForm }) {
+export default function UpdateItem({ config, UpdateForm }: UpdateItemProps) {
   const translate = useLanguage();
   let { entity } = config;
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { current, isLoading, isSuccess } = useSelector(selectUpdatedItem);
+  const { current, isLoading, isSuccess } = useSelector(selectUpdatedItem) as unknown as UpdatedItemState;
   const [form] = Form.useForm();
-  const [subTotal, setSubTotal] = useState(0);
+  const [subTotal, setSubTotal] = useState<number>(0);
 
-  const resetErp = {
+  const resetErp: ErpData = {
     status: '',
     client: {
       name: '',
@@ -58,11 +127,11 @@ export default function UpdateItem({ config, UpdateForm }) {
     year: 0,
   };
 
-  const [currentErp, setCurrentErp] = useState(current ?? resetErp);
+  const [currentErp, setCurrentErp] = useState<ErpData>(current ?? resetErp);
 
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
 
-  const handelValuesChange = (changedValues, values) => {
+  const handelValuesChange = (_changedValues: Record<string, unknown>, values: FieldsValue) => {
     const items = values['items'];
     let subTotal = 0;
 
@@ -80,8 +149,8 @@ export default function UpdateItem({ config, UpdateForm }) {
     }
   };
 
-  const onSubmit = (fieldsValue) => {
-    let dataToUpdate = { ...fieldsValue };
+  const onSubmit = (fieldsValue: FieldsValue) => {
+    let dataToUpdate: FieldsValue = { ...fieldsValue };
     if (fieldsValue) {
       if (fieldsValue.date || fieldsValue.expiredDate) {
         dataToUpdate.date = dayjs(fieldsValue.date).format('YYYY-MM-DDTHH:mm:ss.SSSZ');
@@ -90,23 +159,23 @@ export default function UpdateItem({ config, UpdateForm }) {
         );
       }
       if (fieldsValue.items) {
-        let newList = [];
+        let newList: ErpItem[] = [];
         fieldsValue.items.map((item) => {
           const { quantity, price, itemName, description } = item;
-          const total = item.quantity * item.price;
+          const total = (item.quantity ?? 0) * (item.price ?? 0);
           newList.push({ total, quantity, price, itemName, description });
         });
         dataToUpdate.items = newList;
       }
     }
 
-    dispatch(erp.update({ entity, id, jsonData: dataToUpdate }));
+    dispatch(erp.update({ entity, id, jsonData: dataToUpdate }) as unknown as never);
   };
   useEffect(() => {
     if (isSuccess) {
       form.resetFields();
       setSubTotal(0);
-      dispatch(erp.resetAction({ actionType: 'update' }));
+      dispatch(erp.resetAction({ actionType: 'update' }) as unknown as never);
       navigate(`/${entity.toLowerCase()}/read/${id}`);
     }
   }, [isSuccess]);
@@ -114,18 +183,18 @@ export default function UpdateItem({ config, UpdateForm }) {
   useEffect(() => {
     if (current) {
       setCurrentErp(current);
-      let formData = { ...current };
+      let formData: Record<string, unknown> = { ...current };
       if (formData.date) {
-        formData.date = dayjs(formData.date);
+        formData.date = dayjs(formData.date as string);
       }
       if (formData.expiredDate) {
-        formData.expiredDate = dayjs(formData.expiredDate);
+        formData.expiredDate = dayjs(formData.expiredDate as string);
       }
       if (!formData.taxRate) {
         formData.taxRate = 0;
       }
 
-      const { subTotal } = formData;
+      const { subTotal } = formData as { subTotal: number };
 
       form.resetFields();
       form.setFieldsValue(formData);
@@ -143,11 +212,13 @@ export default function UpdateItem({ config, UpdateForm }) {
         ghost={false}
         tags={[
           <span key="status">{currentErp.status && translate(currentErp.status)}</span>,
-          currentErp.paymentStatus && (
-            <span key="paymentStatus">
-              {currentErp.paymentStatus && translate(currentErp.paymentStatus)}
-            </span>
-          ),
+          ...(currentErp.paymentStatus
+            ? [
+                <span key="paymentStatus">
+                  {translate(currentErp.paymentStatus)}
+                </span>,
+              ]
+            : []),
         ]}
         extra={[
           <Button
