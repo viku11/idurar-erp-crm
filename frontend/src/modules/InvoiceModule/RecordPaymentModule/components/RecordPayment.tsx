@@ -12,37 +12,72 @@ import PaymentForm from '@/forms/PaymentForm';
 import { useNavigate } from 'react-router-dom';
 import calculate from '@/utils/calculate';
 
-export default function RecordPayment({ config }) {
+interface RecordPaymentConfig {
+  entity: string;
+}
+
+interface RecordPaymentProps {
+  config: RecordPaymentConfig;
+}
+
+interface InvoiceClient {
+  _id: string;
+}
+
+interface CurrentInvoice {
+  _id: string;
+  credit: number;
+  total: number;
+  discount: number;
+  client?: InvoiceClient;
+}
+
+interface RecordPaymentState {
+  isLoading: boolean;
+  isSuccess: boolean;
+  current: unknown;
+}
+
+interface PaymentFieldsValue {
+  [key: string]: unknown;
+  invoice?: string;
+  client?: string;
+}
+
+export default function RecordPayment({ config }: RecordPaymentProps) {
   const navigate = useNavigate();
   const translate = useLanguage();
   let { entity } = config;
 
   const dispatch = useDispatch();
 
-  const { isLoading, isSuccess, current: currentInvoice } = useSelector(selectRecordPaymentItem);
+  const { isLoading, isSuccess, current: currentInvoice } = useSelector(selectRecordPaymentItem) as RecordPaymentState;
 
   const [form] = Form.useForm();
 
-  const [maxAmount, setMaxAmount] = useState(0);
+  const [maxAmount, setMaxAmount] = useState<number>(0);
   useEffect(() => {
     if (currentInvoice) {
-      const { credit, total, discount } = currentInvoice;
+      const { credit, total, discount } = currentInvoice as CurrentInvoice;
       setMaxAmount(calculate.sub(calculate.sub(total, discount), credit));
     }
   }, [currentInvoice]);
   useEffect(() => {
     if (isSuccess) {
       form.resetFields();
+      // @ts-ignore - erp actions are thunks from untyped JS module
       dispatch(erp.resetAction({ actionType: 'recordPayment' }));
+      // @ts-ignore - erp actions are thunks from untyped JS module
       dispatch(erp.list({ entity }));
       navigate(`/${entity}/`);
     }
   }, [isSuccess]);
 
-  const onSubmit = (fieldsValue) => {
+  const onSubmit = (fieldsValue: PaymentFieldsValue) => {
     if (currentInvoice) {
-      const { _id: invoice } = currentInvoice;
-      const client = currentInvoice.client && currentInvoice.client._id;
+      const typedInvoice = currentInvoice as CurrentInvoice;
+      const { _id: invoice } = typedInvoice;
+      const client: string | undefined = typedInvoice.client && typedInvoice.client._id;
       fieldsValue = {
         ...fieldsValue,
         invoice,
@@ -50,12 +85,12 @@ export default function RecordPayment({ config }) {
       };
     }
 
-    dispatch(
-      erp.recordPayment({
-        entity: 'payment',
-        jsonData: fieldsValue,
-      })
-    );
+    const recordPaymentAction = erp.recordPayment({
+      entity: 'payment',
+      jsonData: fieldsValue,
+    });
+    // @ts-ignore - erp actions are thunks from untyped JS module
+    dispatch(recordPaymentAction);
   };
 
   return (
