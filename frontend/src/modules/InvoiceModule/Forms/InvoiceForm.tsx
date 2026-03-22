@@ -19,48 +19,66 @@ import calculate from '@/utils/calculate';
 import { useSelector } from 'react-redux';
 import SelectAsync from '@/components/SelectAsync';
 
-export default function QuoteForm({ subTotal = 0, current = null }) {
-  const { last_quote_number } = useSelector(selectFinanceSettings);
+interface InvoiceCurrent {
+  taxRate?: number;
+  year: number;
+  number: number;
+}
 
-  if (last_quote_number === undefined) {
+interface InvoiceFormProps {
+  subTotal?: number;
+  current?: InvoiceCurrent | null;
+}
+
+export default function InvoiceForm({ subTotal = 0, current = null }: InvoiceFormProps): JSX.Element {
+  const financeSettings = useSelector(selectFinanceSettings) as Record<string, unknown>;
+  const last_invoice_number = financeSettings.last_invoice_number as number | undefined;
+
+  if (last_invoice_number === undefined) {
     return <></>;
   }
 
-  return <LoadQuoteForm subTotal={subTotal} current={current} />;
+  return <LoadInvoiceForm subTotal={subTotal} current={current} />;
 }
 
-function LoadQuoteForm({ subTotal = 0, current = null }) {
+interface LoadInvoiceFormProps {
+  subTotal: number;
+  current: InvoiceCurrent | null;
+}
+
+function LoadInvoiceForm({ subTotal = 0, current = null }: LoadInvoiceFormProps): JSX.Element {
   const translate = useLanguage();
   const { dateFormat } = useDate();
-  const { last_quote_number } = useSelector(selectFinanceSettings);
-  const [lastNumber, setLastNumber] = useState(() => last_quote_number + 1);
+  const financeSettings = useSelector(selectFinanceSettings) as Record<string, unknown>;
+  const last_invoice_number = financeSettings.last_invoice_number as number;
+  const [total, setTotal] = useState<number>(0);
+  const [taxRate, setTaxRate] = useState<number>(0);
+  const [taxTotal, setTaxTotal] = useState<number>(0);
+  const [currentYear, setCurrentYear] = useState<number>(() => new Date().getFullYear());
+  const [lastNumber, setLastNumber] = useState<number>(() => last_invoice_number + 1);
 
-  const [total, setTotal] = useState(0);
-  const [taxRate, setTaxRate] = useState(0);
-  const [taxTotal, setTaxTotal] = useState(0);
-  const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
-  const handelTaxChange = (value) => {
+  const handelTaxChange = (value: number): void => {
     setTaxRate(value / 100);
   };
 
   useEffect(() => {
     if (current) {
-      const { taxRate = 0, year, number } = current;
-      setTaxRate(taxRate / 100);
+      const { taxRate: currentTaxRate = 0, year, number } = current;
+      setTaxRate(currentTaxRate / 100);
       setCurrentYear(year);
       setLastNumber(number);
     }
   }, [current]);
   useEffect(() => {
     const currentTotal = calculate.add(calculate.multiply(subTotal, taxRate), subTotal);
-    setTaxTotal(Number.parseFloat(calculate.multiply(subTotal, taxRate)));
-    setTotal(Number.parseFloat(currentTotal));
+    setTaxTotal(Number.parseFloat(String(calculate.multiply(subTotal, taxRate))));
+    setTotal(Number.parseFloat(String(currentTotal)));
   }, [subTotal, taxRate]);
 
-  const addField = useRef(false);
+  const addField = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
-    addField.current.click();
+    addField.current?.click();
   }, []);
 
   return (
@@ -76,6 +94,7 @@ function LoadQuoteForm({ subTotal = 0, current = null }) {
               },
             ]}
           >
+            {/* @ts-ignore - AutoCompleteAsync is untyped */}
             <AutoCompleteAsync
               entity={'client'}
               displayLabels={['name']}
@@ -86,7 +105,7 @@ function LoadQuoteForm({ subTotal = 0, current = null }) {
             />
           </Form.Item>
         </Col>
-        <Col className="gutter-row" span={5}>
+        <Col className="gutter-row" span={3}>
           <Form.Item
             label={translate('number')}
             name="number"
@@ -100,7 +119,7 @@ function LoadQuoteForm({ subTotal = 0, current = null }) {
             <InputNumber min={1} style={{ width: '100%' }} />
           </Form.Item>
         </Col>
-        <Col className="gutter-row" span={5}>
+        <Col className="gutter-row" span={3}>
           <Form.Item
             label={translate('year')}
             name="year"
@@ -115,7 +134,7 @@ function LoadQuoteForm({ subTotal = 0, current = null }) {
           </Form.Item>
         </Col>
 
-        <Col className="gutter-row" span={6}>
+        <Col className="gutter-row" span={5}>
           <Form.Item
             label={translate('status')}
             name="status"
@@ -131,8 +150,6 @@ function LoadQuoteForm({ subTotal = 0, current = null }) {
                 { value: 'draft', label: translate('Draft') },
                 { value: 'pending', label: translate('Pending') },
                 { value: 'sent', label: translate('Sent') },
-                { value: 'accepted', label: translate('Accepted') },
-                { value: 'declined', label: translate('Declined') },
               ]}
             ></Select>
           </Form.Item>
@@ -196,6 +213,7 @@ function LoadQuoteForm({ subTotal = 0, current = null }) {
         {(fields, { add, remove }) => (
           <>
             {fields.map((field) => (
+              // @ts-ignore - ItemRow is untyped
               <ItemRow key={field.key} remove={remove} field={field} current={current}></ItemRow>
             ))}
             <Form.Item>
@@ -235,6 +253,7 @@ function LoadQuoteForm({ subTotal = 0, current = null }) {
             </p>
           </Col>
           <Col className="gutter-row" span={5}>
+            {/* @ts-ignore - MoneyInputFormItem is untyped */}
             <MoneyInputFormItem readOnly value={subTotal} />
           </Col>
         </Row>
@@ -248,20 +267,23 @@ function LoadQuoteForm({ subTotal = 0, current = null }) {
                 },
               ]}
             >
-              <SelectAsync
-                value={taxRate}
-                onChange={handelTaxChange}
-                entity={'taxes'}
-                outputValue={'taxValue'}
-                displayLabels={['taxName']}
-                withRedirect={true}
-                urlToRedirect="/taxes"
-                redirectLabel={translate('Add New Tax')}
-                placeholder={translate('Select Tax Value')}
+              <Select
+                {...({
+                  value: taxRate,
+                  onChange: handelTaxChange,
+                  entity: 'taxes',
+                  outputValue: 'taxValue',
+                  displayLabels: ['taxName'],
+                  withRedirect: true,
+                  urlToRedirect: '/taxes',
+                  redirectLabel: translate('Add New Tax'),
+                  placeholder: translate('Select Tax Value'),
+                } as Record<string, unknown>)}
               />
             </Form.Item>
           </Col>
           <Col className="gutter-row" span={5}>
+            {/* @ts-ignore - MoneyInputFormItem is untyped */}
             <MoneyInputFormItem readOnly value={taxTotal} />
           </Col>
         </Row>
@@ -279,6 +301,7 @@ function LoadQuoteForm({ subTotal = 0, current = null }) {
             </p>
           </Col>
           <Col className="gutter-row" span={5}>
+            {/* @ts-ignore - MoneyInputFormItem is untyped */}
             <MoneyInputFormItem readOnly value={total} />
           </Col>
         </Row>

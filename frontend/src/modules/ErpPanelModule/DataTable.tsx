@@ -7,15 +7,17 @@ import {
   RedoOutlined,
   PlusOutlined,
   EllipsisOutlined,
-  ArrowRightOutlined,
   ArrowLeftOutlined,
 } from '@ant-design/icons';
 import { Dropdown, Table, Button } from 'antd';
+import type { MenuProps, TablePaginationConfig } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
 import { PageHeader } from '@ant-design/pro-layout';
 
 import AutoCompleteAsync from '@/components/AutoCompleteAsync';
 import { useSelector, useDispatch } from 'react-redux';
 import useLanguage from '@/locale/useLanguage';
+// @ts-ignore - actions.js is untyped
 import { erp } from '@/redux/erp/actions';
 import { selectListItems } from '@/redux/erp/selectors';
 import { useErpContext } from '@/context/erp';
@@ -23,11 +25,40 @@ import { useNavigate } from 'react-router-dom';
 
 import { DOWNLOAD_BASE_URL } from '@/config/serverApiConfig';
 
-function AddNewItem({ config }) {
+interface ErpRecord {
+  _id: string;
+  [key: string]: unknown;
+}
+
+interface SearchConfig {
+  entity?: string;
+}
+
+interface DataTableConfig {
+  ADD_NEW_ENTITY: string;
+  DATATABLE_TITLE: string;
+  entity: string;
+  dataTableColumns: ColumnsType<ErpRecord>;
+  disableAdd?: boolean;
+  searchConfig?: SearchConfig;
+}
+
+type MenuItem = Required<MenuProps>['items'][number];
+
+interface AddNewItemProps {
+  config: DataTableConfig;
+}
+
+interface DataTableProps {
+  config: DataTableConfig;
+  extra?: MenuItem[];
+}
+
+function AddNewItem({ config }: AddNewItemProps): React.JSX.Element {
   const navigate = useNavigate();
   const { ADD_NEW_ENTITY, entity } = config;
 
-  const handleClick = () => {
+  const handleClick = (): void => {
     navigate(`/${entity.toLowerCase()}/create`);
   };
 
@@ -38,7 +69,7 @@ function AddNewItem({ config }) {
   );
 }
 
-export default function DataTable({ config, extra = [] }) {
+export default function DataTable({ config, extra = [] }: DataTableProps): React.JSX.Element {
   const translate = useLanguage();
   let { entity, dataTableColumns, disableAdd = false, searchConfig } = config;
 
@@ -51,7 +82,7 @@ export default function DataTable({ config, extra = [] }) {
   const { erpContextAction } = useErpContext();
   const { modal } = erpContextAction;
 
-  const items = [
+  const items: MenuItem[] = [
     {
       label: translate('Show'),
       key: 'read',
@@ -81,25 +112,25 @@ export default function DataTable({ config, extra = [] }) {
 
   const navigate = useNavigate();
 
-  const handleRead = (record) => {
+  const handleRead = (record: ErpRecord): void => {
     dispatch(erp.currentItem({ data: record }));
     navigate(`/${entity}/read/${record._id}`);
   };
-  const handleEdit = (record) => {
+  const handleEdit = (record: ErpRecord): void => {
     const data = { ...record };
     dispatch(erp.currentAction({ actionType: 'update', data }));
     navigate(`/${entity}/update/${record._id}`);
   };
-  const handleDownload = (record) => {
+  const handleDownload = (record: ErpRecord): void => {
     window.open(`${DOWNLOAD_BASE_URL}${entity}/${entity}-${record._id}.pdf`, '_blank');
   };
 
-  const handleDelete = (record) => {
+  const handleDelete = (record: ErpRecord): void => {
     dispatch(erp.currentAction({ actionType: 'delete', data: record }));
     modal.open();
   };
 
-  const handleRecordPayment = (record) => {
+  const handleRecordPayment = (record: ErpRecord): void => {
     dispatch(erp.currentItem({ data: record }));
     navigate(`/invoice/pay/${record._id}`);
   };
@@ -110,11 +141,11 @@ export default function DataTable({ config, extra = [] }) {
       title: '',
       key: 'action',
       fixed: 'right',
-      render: (_, record) => (
+      render: (_: unknown, record: ErpRecord) => (
         <Dropdown
           menu={{
             items,
-            onClick: ({ key }) => {
+            onClick: ({ key }: { key: string }) => {
               switch (key) {
                 case 'read':
                   handleRead(record);
@@ -141,21 +172,24 @@ export default function DataTable({ config, extra = [] }) {
         >
           <EllipsisOutlined
             style={{ cursor: 'pointer', fontSize: '24px' }}
-            onClick={(e) => e.preventDefault()}
+            onClick={(e: React.MouseEvent) => e.preventDefault()}
           />
         </Dropdown>
       ),
     },
   ];
 
-  const dispatch = useDispatch();
+  // @ts-ignore - erp actions are thunks from untyped JS module; dispatch must accept them
+  const dispatch: (action: unknown) => void = useDispatch();
 
-  const handelDataTableLoad = (pagination) => {
+  const handelDataTableLoad = (pagination: TablePaginationConfig): void => {
     const options = { page: pagination.current || 1, items: pagination.pageSize || 10 };
+    // @ts-ignore - erp.list is an untyped thunk action creator
     dispatch(erp.list({ entity, options }));
   };
 
-  const dispatcher = () => {
+  const dispatcher = (): void => {
+    // @ts-ignore - erp.list is an untyped thunk action creator
     dispatch(erp.list({ entity }));
   };
 
@@ -167,8 +201,9 @@ export default function DataTable({ config, extra = [] }) {
     };
   }, []);
 
-  const filterTable = (value) => {
+  const filterTable = (value: string): void => {
     const options = { equal: value, filter: searchConfig?.entity };
+    // @ts-ignore - erp.list accepts various option shapes from untyped JS module
     dispatch(erp.list({ entity, options }));
   };
 
@@ -182,7 +217,7 @@ export default function DataTable({ config, extra = [] }) {
         extra={[
           <AutoCompleteAsync
             key="search-auto-complete"
-            entity={searchConfig?.entity}
+            entity={searchConfig?.entity ?? ''}
             displayLabels={['name']}
             searchFields={'name'}
             onChange={filterTable}
@@ -190,7 +225,12 @@ export default function DataTable({ config, extra = [] }) {
             // withRedirect
             // urlToRedirect={'/customer'}
           />,
-          <Button onClick={handelDataTableLoad} key="refresh-button" icon={<RedoOutlined />}>
+          <Button
+            // @ts-ignore - handelDataTableLoad signature matches Table onChange, reused on Button onClick in original code
+            onClick={handelDataTableLoad}
+            key="refresh-button"
+            icon={<RedoOutlined />}
+          >
             {translate('Refresh')}
           </Button>,
 
@@ -203,7 +243,7 @@ export default function DataTable({ config, extra = [] }) {
 
       <Table
         columns={dataTableColumns}
-        rowKey={(item) => item._id}
+        rowKey={(item: ErpRecord) => item._id}
         dataSource={dataSource}
         pagination={pagination}
         loading={listIsLoading}
