@@ -158,7 +158,7 @@ export default function ReadItem({ config, selectedItem }: ReadItemProps) {
 
   useEffect(() => {
     if (currentResult) {
-      const { items, invoice, ...others } = currentResult;
+      const { items, invoice, ...others } = currentResult as ErpRecord;
 
       if (items) {
         setItemsList(items);
