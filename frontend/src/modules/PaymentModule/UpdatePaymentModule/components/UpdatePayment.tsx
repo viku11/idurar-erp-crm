@@ -13,7 +13,32 @@ import calculate from '@/utils/calculate';
 import PaymentForm from '@/forms/PaymentForm';
 import { useNavigate } from 'react-router-dom';
 
-export default function UpdatePayment({ config, currentInvoice }) {
+interface InvoiceClient {
+  _id: string;
+  [key: string]: unknown;
+}
+
+interface CurrentInvoice {
+  _id: string;
+  credit: number | string;
+  total: number | string;
+  discount: number | string;
+  amount: number | string;
+  date?: string;
+  client?: InvoiceClient;
+  [key: string]: unknown;
+}
+
+interface UpdatePaymentConfig {
+  entity: string;
+}
+
+interface UpdatePaymentProps {
+  config: UpdatePaymentConfig;
+  currentInvoice: CurrentInvoice;
+}
+
+export default function UpdatePayment({ config, currentInvoice }: UpdatePaymentProps): React.JSX.Element {
   const translate = useLanguage();
   const navigate = useNavigate();
   let { entity } = config;
@@ -23,18 +48,18 @@ export default function UpdatePayment({ config, currentInvoice }) {
 
   const [form] = Form.useForm();
 
-  const [maxAmount, setMaxAmount] = useState(0);
+  const [maxAmount, setMaxAmount] = useState<number>(0);
 
   useEffect(() => {
     if (currentInvoice) {
       const { credit, total, discount, amount } = currentInvoice;
 
       setMaxAmount(
-        calculate.sub(calculate.sub(total, discount), calculate.sub(calculate.sub(credit, amount)))
+        calculate.sub(calculate.sub(total, discount), calculate.sub(credit, amount))
       );
-      const newInvoiceValues = { ...currentInvoice };
+      const newInvoiceValues: Record<string, unknown> = { ...currentInvoice };
       if (newInvoiceValues.date) {
-        newInvoiceValues.date = dayjs(newInvoiceValues.date);
+        newInvoiceValues.date = dayjs(newInvoiceValues.date as string);
       }
       form.setFieldsValue(newInvoiceValues);
     }
@@ -43,30 +68,28 @@ export default function UpdatePayment({ config, currentInvoice }) {
   useEffect(() => {
     if (isSuccess) {
       form.resetFields();
+      // @ts-ignore - thunk action not compatible with default dispatch type
       dispatch(erp.resetAction({ actionType: 'recordPayment' }));
+      // @ts-ignore - thunk action not compatible with default dispatch type
       dispatch(erp.list({ entity }));
       navigate(`/${entity.toLowerCase()}/read/${currentInvoice._id}`);
     }
   }, [isSuccess]);
 
-  const onSubmit = (fieldsValue) => {
+  const onSubmit = (fieldsValue: Record<string, unknown>): void => {
+    let submitData: Record<string, unknown> = { ...fieldsValue };
     if (currentInvoice) {
       const { _id: invoice } = currentInvoice;
-      const client = currentInvoice.client && currentInvoice.client._id;
-      fieldsValue = {
-        ...fieldsValue,
+      const client: string | undefined = currentInvoice.client && currentInvoice.client._id;
+      submitData = {
+        ...submitData,
         invoice,
         client,
       };
     }
 
-    dispatch(
-      erp.update({
-        entity,
-        id: currentInvoice._id,
-        jsonData: fieldsValue,
-      })
-    );
+    // @ts-ignore - thunk action not compatible with default dispatch type
+    dispatch(erp.update({ entity, id: currentInvoice._id, jsonData: submitData }));
   };
 
   return (
