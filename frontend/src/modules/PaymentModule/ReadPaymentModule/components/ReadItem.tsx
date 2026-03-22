@@ -14,6 +14,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { erp } from '@/redux/erp/actions';
 import useLanguage from '@/locale/useLanguage';
 
+// @ts-ignore — shortid has no bundled type declarations
 import { generate as uniqueId } from 'shortid';
 
 import { selectCurrentItem } from '@/redux/erp/selectors';
@@ -24,7 +25,44 @@ import { useMoney } from '@/settings';
 import useMail from '@/hooks/useMail';
 import { useNavigate } from 'react-router-dom';
 
-export default function ReadItem({ config, selectedItem }) {
+interface Client {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+}
+
+interface ErpData {
+  _id?: string;
+  status: string;
+  client: Client;
+  subTotal: number;
+  taxTotal: number;
+  taxRate: number;
+  total: number;
+  credit: number;
+  number: number;
+  year: number;
+  amount?: number;
+  currency?: string;
+  paymentStatus?: string;
+}
+
+interface ReadItemConfig {
+  entity: string;
+  ENTITY_NAME: string;
+}
+
+interface ReadItemProps {
+  config: ReadItemConfig;
+  selectedItem?: ErpData;
+}
+
+interface CurrentItemState {
+  result: unknown;
+}
+
+export default function ReadItem({ config, selectedItem }: ReadItemProps) {
   const translate = useLanguage();
   const { entity, ENTITY_NAME } = config;
   const dispatch = useDispatch();
@@ -33,9 +71,9 @@ export default function ReadItem({ config, selectedItem }) {
   const { send, isLoading: mailInProgress } = useMail({ entity });
   const navigate = useNavigate();
 
-  const { result: currentResult } = useSelector(selectCurrentItem);
+  const { result: currentResult } = useSelector(selectCurrentItem) as CurrentItemState;
 
-  const resetErp = {
+  const resetErp: ErpData = {
     status: '',
     client: {
       name: '',
@@ -52,14 +90,19 @@ export default function ReadItem({ config, selectedItem }) {
     year: 0,
   };
 
-  const [currentErp, setCurrentErp] = useState(selectedItem ?? resetErp);
-  const [client, setClient] = useState({});
+  const [currentErp, setCurrentErp] = useState<ErpData>(selectedItem ?? resetErp);
+  const [client, setClient] = useState<Client>({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+  });
 
   useEffect(() => {
     const controller = new AbortController();
     if (currentResult) {
-      const { invoice, _id, ...others } = currentResult;
-      setCurrentErp({ ...others, ...invoice, _id });
+      const { invoice, _id, ...others } = currentResult as Record<string, unknown>;
+      setCurrentErp({ ...others, ...(invoice as Record<string, unknown>), _id } as ErpData);
     }
     return () => controller.abort();
   }, [currentResult]);
@@ -105,7 +148,7 @@ export default function ReadItem({ config, selectedItem }) {
             key={`${uniqueId()}`}
             loading={mailInProgress}
             onClick={() => {
-              send(currentErp._id);
+              send(currentErp._id as string);
             }}
             icon={<MailOutlined />}
           >
@@ -119,7 +162,7 @@ export default function ReadItem({ config, selectedItem }) {
                 erp.currentAction({
                   actionType: 'update',
                   data: currentErp,
-                })
+                }) as any
               );
               navigate(`/${entity.toLowerCase()}/update/${currentErp._id}`);
             }}
@@ -138,7 +181,7 @@ export default function ReadItem({ config, selectedItem }) {
           <Statistic
             title={translate('Paid')}
             value={moneyFormatter({
-              amount: currentErp.amount,
+              amount: currentErp.amount ?? 0,
               currency_code: currentErp.currency,
             })}
             style={{
@@ -193,7 +236,7 @@ export default function ReadItem({ config, selectedItem }) {
           </Col>
           <Col className="gutter-row" span={12}>
             <p>
-              {moneyFormatter({ amount: currentErp.amount, currency_code: currentErp.currency })}
+              {moneyFormatter({ amount: currentErp.amount ?? 0, currency_code: currentErp.currency })}
             </p>
           </Col>
 
