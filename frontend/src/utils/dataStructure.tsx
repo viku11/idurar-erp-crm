@@ -1,15 +1,64 @@
+import React from 'react';
 import dayjs from 'dayjs';
 import { Switch, Tag } from 'antd';
 import { CloseOutlined, CheckOutlined } from '@ant-design/icons';
 import { countryList } from '@/utils/countryList';
+// @ts-ignore - shortid has no declaration file
 import { generate as uniqueId } from 'shortid';
 import color from '@/utils/color';
 
-export const dataForRead = ({ fields, translate }) => {
-  let columns = [];
+interface FieldOption {
+  value: string;
+  color?: string;
+  label?: string;
+}
+
+interface Field {
+  label?: string;
+  dataIndex?: string[];
+  type: string;
+  color?: string;
+  disableForTable?: boolean;
+  renderAsTag?: boolean;
+  options: FieldOption[];
+  colors: Record<string, string>;
+}
+
+interface ReadColumn {
+  title: string;
+  dataIndex: string;
+  isDate: boolean;
+}
+
+interface DataForReadParams {
+  fields: Record<string, Field>;
+  translate: (key: string) => string;
+}
+
+interface DataForTableParams {
+  fields: Record<string, Field>;
+  translate: (key: string) => string;
+  moneyFormatter: (args: { amount: number; currency_code: string }) => string;
+  dateFormat: string;
+}
+
+interface TableRecord extends Record<string, unknown> {
+  currency: string;
+  color?: string;
+}
+
+interface TableColumn {
+  title: string;
+  dataIndex: string[];
+  onCell?: () => Record<string, unknown>;
+  render?: (_text: unknown, record: TableRecord) => React.ReactNode;
+}
+
+export const dataForRead = ({ fields }: DataForReadParams): ReadColumn[] => {
+  const columns: ReadColumn[] = [];
 
   Object.keys(fields).forEach((key) => {
-    let field = fields[key];
+    const field: Field = fields[key];
     columns.push({
       title: field.label ? field.label : key,
       dataIndex: field.dataIndex ? field.dataIndex.join('.') : key,
@@ -20,14 +69,14 @@ export const dataForRead = ({ fields, translate }) => {
   return columns;
 };
 
-export function dataForTable({ fields, translate, moneyFormatter, dateFormat }) {
-  let columns = [];
+export function dataForTable({ fields, translate, moneyFormatter, dateFormat }: DataForTableParams): TableColumn[] {
+  const columns: TableColumn[] = [];
 
   Object.keys(fields).forEach((key) => {
-    let field = fields[key];
-    const keyIndex = field.dataIndex ? field.dataIndex : [key];
+    const field: Field = fields[key];
+    const keyIndex: string[] = field.dataIndex ? field.dataIndex : [key];
 
-    const component = {
+    const component: Record<string, TableColumn> = {
       boolean: {
         title: field.label ? translate(field.label) : translate(key),
         dataIndex: keyIndex,
@@ -38,9 +87,9 @@ export function dataForTable({ fields, translate, moneyFormatter, dateFormat }) 
             },
           },
         }),
-        render: (_, record) => (
+        render: (_: unknown, record: TableRecord) => (
           <Switch
-            checked={record[key]}
+            checked={record[key] as boolean}
             checkedChildren={<CheckOutlined />}
             unCheckedChildren={<CloseOutlined />}
           />
@@ -49,8 +98,8 @@ export function dataForTable({ fields, translate, moneyFormatter, dateFormat }) 
       date: {
         title: field.label ? translate(field.label) : translate(key),
         dataIndex: keyIndex,
-        render: (_, record) => {
-          const date = dayjs(record[key]).format(dateFormat);
+        render: (_: unknown, record: TableRecord) => {
+          const date: string = dayjs(record[key] as string).format(dateFormat);
           return (
             <Tag bordered={false} color={field.color}>
               {date}
@@ -69,16 +118,17 @@ export function dataForTable({ fields, translate, moneyFormatter, dateFormat }) 
             },
           };
         },
-        render: (_, record) =>
-          moneyFormatter({ amount: record[key], currency_code: record.currency }),
+        render: (_: unknown, record: TableRecord) =>
+          moneyFormatter({ amount: record[key] as number, currency_code: record.currency }),
       },
       async: {
         title: field.label ? translate(field.label) : translate(key),
         dataIndex: keyIndex,
-        render: (text, record) => {
+        render: (text: unknown, record: TableRecord) => {
+          const recordValue = record[key] as { color?: string } | undefined;
           return (
-            <Tag bordered={false} color={field.color || record[key]?.color || record.color}>
-              {text}
+            <Tag bordered={false} color={field.color || recordValue?.color || record.color}>
+              {text as React.ReactNode}
             </Tag>
           );
         },
@@ -86,9 +136,9 @@ export function dataForTable({ fields, translate, moneyFormatter, dateFormat }) 
       color: {
         title: field.label ? translate(field.label) : translate(key),
         dataIndex: keyIndex,
-        render: (text, record) => {
+        render: (text: unknown) => {
           return (
-            <Tag bordered={false} color={text}>
+            <Tag bordered={false} color={text as string}>
               {color.find((x) => x.value === text)?.label}
             </Tag>
           );
@@ -97,10 +147,10 @@ export function dataForTable({ fields, translate, moneyFormatter, dateFormat }) 
       stringWithColor: {
         title: field.label ? translate(field.label) : translate(key),
         dataIndex: keyIndex,
-        render: (text, record) => {
+        render: (text: unknown, record: TableRecord) => {
           return (
             <Tag bordered={false} color={record.color || field.color}>
-              {text}
+              {text as React.ReactNode}
             </Tag>
           );
         },
@@ -108,10 +158,10 @@ export function dataForTable({ fields, translate, moneyFormatter, dateFormat }) 
       tag: {
         title: field.label ? translate(field.label) : translate(key),
         dataIndex: keyIndex,
-        render: (_, record) => {
+        render: (_: unknown, record: TableRecord) => {
           return (
             <Tag bordered={false} color={field.color}>
-              {record[key] && record[key]}
+              {record[key] as React.ReactNode}
             </Tag>
           );
         },
@@ -119,53 +169,53 @@ export function dataForTable({ fields, translate, moneyFormatter, dateFormat }) 
       selectWithFeedback: {
         title: field.label ? translate(field.label) : translate(key),
         dataIndex: keyIndex,
-        render: (text, record) => {
+        render: (_text: unknown, record: TableRecord) => {
           if (field.renderAsTag) {
-            const selectedOption = field.options.find((x) => x.value === record[key]);
+            const selectedOption: FieldOption | undefined = field.options.find((x) => x.value === record[key]);
 
             return (
               <Tag bordered={false} color={selectedOption?.color}>
-                {record[key] && translate(record[key])}
+                {record[key] ? translate(record[key] as string) : null}
               </Tag>
             );
-          } else return record[key] && translate(record[key]);
+          } else return (record[key] ? translate(record[key] as string) : null) as React.ReactNode;
         },
       },
       select: {
         title: field.label ? translate(field.label) : translate(key),
         dataIndex: keyIndex,
-        render: (_, record) => {
+        render: (_: unknown, record: TableRecord) => {
           if (field.renderAsTag) {
-            const selectedOption = field.options.find((x) => x.value === record[key]);
+            const selectedOption: FieldOption | undefined = field.options.find((x) => x.value === record[key]);
 
             return (
               <Tag bordered={false} color={selectedOption?.color}>
-                {record[key] && record[key]}
+                {record[key] as React.ReactNode}
               </Tag>
             );
-          } else return record[key] && record[key];
+          } else return record[key] as React.ReactNode;
         },
       },
       selectWithTranslation: {
         title: field.label ? translate(field.label) : translate(key),
         dataIndex: keyIndex,
-        render: (_, record) => {
+        render: (_: unknown, record: TableRecord) => {
           if (field.renderAsTag) {
-            const selectedOption = field.options.find((x) => x.value === record[key]);
+            const selectedOption: FieldOption | undefined = field.options.find((x) => x.value === record[key]);
 
             return (
               <Tag bordered={false} color={selectedOption?.color}>
-                {record[key] && translate(record[key])}
+                {record[key] ? translate(record[key] as string) : null}
               </Tag>
             );
-          } else return record[key] && translate(record[key]);
+          } else return (record[key] ? translate(record[key] as string) : null) as React.ReactNode;
         },
       },
       array: {
         title: field.label ? translate(field.label) : translate(key),
         dataIndex: keyIndex,
-        render: (_, record) => {
-          return record[key].map((x) => (
+        render: (_: unknown, record: TableRecord) => {
+          return (record[key] as string[]).map((x: string) => (
             <Tag bordered={false} key={`${uniqueId()}`} color={field.colors[x]}>
               {x}
             </Tag>
@@ -175,12 +225,13 @@ export function dataForTable({ fields, translate, moneyFormatter, dateFormat }) 
       country: {
         title: field.label ? translate(field.label) : translate(key),
         dataIndex: keyIndex,
-        render: (_, record) => {
+        render: (_: unknown, record: TableRecord) => {
           const selectedCountry = countryList.find((obj) => obj.value === record[key]);
 
           return (
             <Tag bordered={false} color={field.color || undefined}>
-              {selectedCountry?.icon && selectedCountry?.icon + ' '}
+              {/* @ts-ignore - icon may exist on extended country objects at runtime */}
+              {selectedCountry && (selectedCountry as Record<string, unknown>).icon ? String((selectedCountry as Record<string, unknown>).icon) + ' ' : null}
               {selectedCountry?.label && translate(selectedCountry.label)}
             </Tag>
           );
@@ -188,12 +239,12 @@ export function dataForTable({ fields, translate, moneyFormatter, dateFormat }) 
       },
     };
 
-    const defaultComponent = {
+    const defaultComponent: TableColumn = {
       title: field.label ? translate(field.label) : translate(key),
       dataIndex: keyIndex,
     };
 
-    const type = field.type;
+    const type: string = field.type;
 
     if (!field.disableForTable) {
       Object.keys(component).includes(type)
@@ -205,8 +256,8 @@ export function dataForTable({ fields, translate, moneyFormatter, dateFormat }) 
   return columns;
 }
 
-function getRandomColor() {
-  const colors = [
+function getRandomColor(): string {
+  const colors: string[] = [
     'magenta',
     'red',
     'volcano',
@@ -220,9 +271,7 @@ function getRandomColor() {
     'purple',
   ];
 
-  // Generate a random index between 0 and the length of the colors array
-  const randomIndex = Math.floor(Math.random() * colors.length);
+  const randomIndex: number = Math.floor(Math.random() * colors.length);
 
-  // Return the color at the randomly generated index
   return colors[randomIndex];
 }
