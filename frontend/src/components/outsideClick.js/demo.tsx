@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import ReactDOM from 'react-dom';
 
+// @ts-ignore - Dropdown is an untyped JS module
 import Dropdown from './Dropdown';
 import './styles.css';
 
-function App() {
-  const [vegetagle, setVegetable] = useState(undefined);
-  const [fruit, setFruit] = useState(undefined);
+function App(): JSX.Element {
+  const [vegetagle, setVegetable] = useState<string | undefined>(undefined);
+  const [fruit, setFruit] = useState<string | undefined>(undefined);
 
   return (
     <div className="App">
@@ -15,18 +16,18 @@ function App() {
       <Dropdown
         placeholder="Select Vegetable"
         value={vegetagle}
-        onChange={(v) => setVegetable(v)}
+        onChange={(v: string) => setVegetable(v)}
         options={['Tomato', 'Cucumber', 'Potato']}
       />
       <Dropdown
         placeholder="Select Fruit"
         value={fruit}
-        onChange={(v) => setFruit(v)}
+        onChange={(v: string) => setFruit(v)}
         options={['Apple', 'Banana', 'Orange', 'Mango']}
       />
     </div>
   );
 }
 
-const rootElement = document.getElementById('root');
+const rootElement: HTMLElement | null = document.getElementById('root');
 ReactDOM.render(<App />, rootElement);
