@@ -1,4 +1,10 @@
-const color = [
+interface ColorOption {
+  value: string;
+  label: string;
+  color?: string;
+}
+
+const color: ColorOption[] = [
   {
     value: 'default',
     label: 'default',
@@ -550,7 +556,7 @@ const color = [
 
 // console.log('🚀 ~ rendercolor();:', rendercolor());
 
-export const selectColor = {
+export const selectColor: Record<string, string | null> = {
   default: null,
   magenta: 'magenta',
   red: 'red',
