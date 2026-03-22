@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
-import { Tag, Row, Col } from 'antd';
+import { Row, Col } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
 import useLanguage from '@/locale/useLanguage';
 
 import { useMoney } from '@/settings';
@@ -18,12 +19,45 @@ import CustomerPreviewCard from './components/CustomerPreviewCard';
 import { selectMoneyFormat } from '@/redux/settings/selectors';
 import { useSelector } from 'react-redux';
 
-export default function DashboardModule() {
+interface PerformanceItem {
+  status: string;
+  percentage: number;
+}
+
+interface SummaryResult {
+  total: number;
+  total_undue: number;
+  performance: PerformanceItem[];
+}
+
+interface ClientSummaryResult {
+  active: number;
+  new: number;
+}
+
+interface StatsDataParams {
+  entity: string;
+  currency: string;
+}
+
+interface RecordItem {
+  _id: string;
+  [key: string]: unknown;
+}
+
+interface EntityDataItem {
+  result: SummaryResult | null;
+  isLoading: boolean;
+  entity: string;
+  title: string;
+}
+
+export default function DashboardModule(): React.JSX.Element {
   const translate = useLanguage();
   const { moneyFormatter } = useMoney();
   const money_format_settings = useSelector(selectMoneyFormat);
 
-  const getStatsData = async ({ entity, currency }) => {
+  const getStatsData = async ({ entity, currency }: StatsDataParams): Promise<{ result: SummaryResult; success: boolean }> => {
     return await request.summary({
       entity,
       options: { currency },
@@ -34,31 +68,31 @@ export default function DashboardModule() {
     result: invoiceResult,
     isLoading: invoiceLoading,
     onFetch: fetchInvoicesStats,
-  } = useOnFetch();
+  } = useOnFetch<SummaryResult>();
 
-  const { result: quoteResult, isLoading: quoteLoading, onFetch: fetchQuotesStats } = useOnFetch();
+  const { result: quoteResult, isLoading: quoteLoading, onFetch: fetchQuotesStats } = useOnFetch<SummaryResult>();
 
   const {
     result: paymentResult,
     isLoading: paymentLoading,
     onFetch: fetchPayemntsStats,
-  } = useOnFetch();
+  } = useOnFetch<SummaryResult>();
 
-  const { result: clientResult, isLoading: clientLoading } = useFetch(() =>
+  const { result: clientResult, isLoading: clientLoading } = useFetch<ClientSummaryResult>(() =>
     request.summary({ entity: 'client' })
   );
 
   useEffect(() => {
-    const currency = money_format_settings.default_currency_code || null;
+    const currency: string | null = (money_format_settings as Record<string, string>).default_currency_code || null;
 
     if (currency) {
       fetchInvoicesStats(getStatsData({ entity: 'invoice', currency }));
       fetchQuotesStats(getStatsData({ entity: 'quote', currency }));
       fetchPayemntsStats(getStatsData({ entity: 'payment', currency }));
     }
-  }, [money_format_settings.default_currency_code]);
+  }, [(money_format_settings as Record<string, string>).default_currency_code]);
 
-  const dataTableColumns = [
+  const dataTableColumns: ColumnsType<RecordItem> = [
     {
       title: translate('number'),
       dataIndex: 'number',
@@ -71,16 +105,14 @@ export default function DashboardModule() {
     {
       title: translate('Total'),
       dataIndex: 'total',
-      onCell: () => {
-        return {
-          style: {
-            textAlign: 'right',
-            whiteSpace: 'nowrap',
-            direction: 'ltr',
-          },
-        };
-      },
-      render: (total, record) => moneyFormatter({ amount: total, currency_code: record.currency }),
+      onCell: () => ({
+        style: {
+          textAlign: 'right' as const,
+          whiteSpace: 'nowrap' as const,
+          direction: 'ltr' as const,
+        },
+      }),
+      render: (total: unknown, record: RecordItem): string => moneyFormatter({ amount: total as number, currency_code: record.currency as string }),
     },
     {
       title: translate('Status'),
@@ -88,7 +120,7 @@ export default function DashboardModule() {
     },
   ];
 
-  const entityData = [
+  const entityData: EntityDataItem[] = [
     {
       result: invoiceResult,
       isLoading: invoiceLoading,
@@ -103,7 +135,7 @@ export default function DashboardModule() {
     },
   ];
 
-  const statisticCards = entityData.map((data, index) => {
+  const statisticCards: React.JSX.Element[] = entityData.map((data: EntityDataItem, index: number) => {
     const { result, entity, isLoading, title } = data;
 
     return (
@@ -113,12 +145,13 @@ export default function DashboardModule() {
         isLoading={isLoading}
         entity={entity}
         statistics={
-          !isLoading &&
-          result?.performance?.map((item) => ({
-            tag: item?.status,
-            color: 'blue',
-            value: item?.percentage,
-          }))
+          !isLoading && result?.performance
+            ? result.performance.map((item: PerformanceItem) => ({
+                tag: item.status,
+                color: 'blue',
+                value: item.percentage,
+              }))
+            : undefined
         }
       />
     );
@@ -132,25 +165,25 @@ export default function DashboardModule() {
             title={translate('Invoices')}
             prefix={translate('This month')}
             isLoading={invoiceLoading}
-            data={invoiceResult?.total}
+            data={invoiceResult?.total ?? 0}
           />
           <SummaryCard
             title={translate('Quote')}
             prefix={translate('This month')}
             isLoading={quoteLoading}
-            data={quoteResult?.total}
+            data={quoteResult?.total ?? 0}
           />
           <SummaryCard
             title={translate('paid')}
             prefix={translate('This month')}
             isLoading={paymentLoading}
-            data={paymentResult?.total}
+            data={paymentResult?.total ?? 0}
           />
           <SummaryCard
             title={translate('Unpaid')}
             prefix={translate('Not Paid')}
             isLoading={invoiceLoading}
-            data={invoiceResult?.total_undue}
+            data={invoiceResult?.total_undue ?? 0}
           />
         </Row>
         <div className="space30"></div>
