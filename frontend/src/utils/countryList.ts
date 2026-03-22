@@ -1,4 +1,10 @@
-export const countryList = [
+export interface Country {
+  label: string;
+  value: string;
+  timeZone?: string[];
+}
+
+export const countryList: Country[] = [
   {
     label: 'Afghanistan',
     value: 'AF',
