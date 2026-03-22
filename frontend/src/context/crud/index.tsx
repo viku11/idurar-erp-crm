@@ -1,13 +1,19 @@
-import { useMemo, useReducer, createContext, useContext } from 'react';
-import { initialState, contextReducer } from './reducer';
+import { useMemo, useReducer, createContext, useContext, ReactNode, Dispatch } from 'react';
+import { initialState, contextReducer, CrudContextState, CrudAction } from './reducer';
 import contextActions from './actions';
 import contextSelectors from './selectors';
 
-const CrudContext = createContext();
+type CrudContextValue = [CrudContextState, Dispatch<CrudAction>];
 
-function CrudContextProvider({ children }) {
+const CrudContext = createContext<CrudContextValue | undefined>(undefined);
+
+interface CrudContextProviderProps {
+  children: ReactNode;
+}
+
+function CrudContextProvider({ children }: CrudContextProviderProps): JSX.Element {
   const [state, dispatch] = useReducer(contextReducer, initialState);
-  const value = useMemo(() => [state, dispatch], [state]);
+  const value: CrudContextValue = useMemo(() => [state, dispatch], [state]);
 
   return <CrudContext.Provider value={value}>{children}</CrudContext.Provider>;
 }
