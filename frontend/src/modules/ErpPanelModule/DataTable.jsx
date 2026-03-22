@@ -11,13 +11,10 @@ import {
   ArrowLeftOutlined,
 } from '@ant-design/icons';
 import { Dropdown, Table, Button } from 'antd';
-import type { TablePaginationConfig, MenuProps } from 'antd';
-import type { ColumnType } from 'antd/es/table';
 import { PageHeader } from '@ant-design/pro-layout';
 
 import AutoCompleteAsync from '@/components/AutoCompleteAsync';
 import { useSelector, useDispatch } from 'react-redux';
-import type { Dispatch } from 'redux';
 import useLanguage from '@/locale/useLanguage';
 import { erp } from '@/redux/erp/actions';
 import { selectListItems } from '@/redux/erp/selectors';
@@ -26,49 +23,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { DOWNLOAD_BASE_URL } from '@/config/serverApiConfig';
 
-interface SearchConfig {
-  entity?: string;
-}
-
-interface DataRecord {
-  _id: string;
-  [key: string]: unknown;
-}
-
-interface DataTableConfig {
-  ADD_NEW_ENTITY: string;
-  DATATABLE_TITLE: string;
-  entity: string;
-  dataTableColumns: ColumnType<DataRecord>[];
-  disableAdd?: boolean;
-  searchConfig?: SearchConfig;
-}
-
-interface ErpPagination {
-  current: number;
-  pageSize: number;
-  showSizeChanger: boolean;
-  total: number;
-}
-
-interface ErpListResult {
-  items: DataRecord[];
-  pagination: ErpPagination;
-}
-
-interface ErpListState {
-  result: ErpListResult;
-  isLoading: boolean;
-  isSuccess: boolean;
-}
-
-type MenuItem = Required<MenuProps>['items'][number];
-
-interface AddNewItemProps {
-  config: DataTableConfig;
-}
-
-function AddNewItem({ config }: AddNewItemProps) {
+function AddNewItem({ config }) {
   const navigate = useNavigate();
   const { ADD_NEW_ENTITY, entity } = config;
 
@@ -83,25 +38,20 @@ function AddNewItem({ config }: AddNewItemProps) {
   );
 }
 
-interface DataTableProps {
-  config: DataTableConfig;
-  extra?: MenuItem[];
-}
-
-export default function DataTable({ config, extra = [] }: DataTableProps) {
+export default function DataTable({ config, extra = [] }) {
   const translate = useLanguage();
   let { entity, dataTableColumns, disableAdd = false, searchConfig } = config;
 
   const { DATATABLE_TITLE } = config;
 
-  const { result: listResult, isLoading: listIsLoading } = useSelector(selectListItems) as ErpListState;
+  const { result: listResult, isLoading: listIsLoading } = useSelector(selectListItems);
 
   const { pagination, items: dataSource } = listResult;
 
   const { erpContextAction } = useErpContext();
   const { modal } = erpContextAction;
 
-  const items: MenuItem[] = [
+  const items = [
     {
       label: translate('Show'),
       key: 'read',
@@ -131,25 +81,25 @@ export default function DataTable({ config, extra = [] }: DataTableProps) {
 
   const navigate = useNavigate();
 
-  const handleRead = (record: DataRecord) => {
+  const handleRead = (record) => {
     dispatch(erp.currentItem({ data: record }));
     navigate(`/${entity}/read/${record._id}`);
   };
-  const handleEdit = (record: DataRecord) => {
+  const handleEdit = (record) => {
     const data = { ...record };
     dispatch(erp.currentAction({ actionType: 'update', data }));
     navigate(`/${entity}/update/${record._id}`);
   };
-  const handleDownload = (record: DataRecord) => {
+  const handleDownload = (record) => {
     window.open(`${DOWNLOAD_BASE_URL}${entity}/${entity}-${record._id}.pdf`, '_blank');
   };
 
-  const handleDelete = (record: DataRecord) => {
+  const handleDelete = (record) => {
     dispatch(erp.currentAction({ actionType: 'delete', data: record }));
     modal.open();
   };
 
-  const handleRecordPayment = (record: DataRecord) => {
+  const handleRecordPayment = (record) => {
     dispatch(erp.currentItem({ data: record }));
     navigate(`/invoice/pay/${record._id}`);
   };
@@ -160,11 +110,11 @@ export default function DataTable({ config, extra = [] }: DataTableProps) {
       title: '',
       key: 'action',
       fixed: 'right',
-      render: (_: unknown, record: DataRecord) => (
+      render: (_, record) => (
         <Dropdown
           menu={{
             items,
-            onClick: ({ key }: { key: string }) => {
+            onClick: ({ key }) => {
               switch (key) {
                 case 'read':
                   handleRead(record);
@@ -198,16 +148,11 @@ export default function DataTable({ config, extra = [] }: DataTableProps) {
     },
   ];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const dispatch = useDispatch<Dispatch<any>>();
+  const dispatch = useDispatch();
 
-  const handelDataTableLoad = (pagination: TablePaginationConfig) => {
+  const handelDataTableLoad = (pagination) => {
     const options = { page: pagination.current || 1, items: pagination.pageSize || 10 };
     dispatch(erp.list({ entity, options }));
-  };
-
-  const handleRefresh = () => {
-    handelDataTableLoad({ current: 1, pageSize: 10 });
   };
 
   const dispatcher = () => {
@@ -222,9 +167,9 @@ export default function DataTable({ config, extra = [] }: DataTableProps) {
     };
   }, []);
 
-  const filterTable = (value: string) => {
+  const filterTable = (value) => {
     const options = { equal: value, filter: searchConfig?.entity };
-    dispatch(erp.list({ entity, options: options as unknown as { page: number; items: number } }));
+    dispatch(erp.list({ entity, options }));
   };
 
   return (
@@ -237,7 +182,7 @@ export default function DataTable({ config, extra = [] }: DataTableProps) {
         extra={[
           <AutoCompleteAsync
             key="search-auto-complete"
-            entity={searchConfig?.entity as string}
+            entity={searchConfig?.entity}
             displayLabels={['name']}
             searchFields={'name'}
             onChange={filterTable}
@@ -245,7 +190,7 @@ export default function DataTable({ config, extra = [] }: DataTableProps) {
             // withRedirect
             // urlToRedirect={'/customer'}
           />,
-          <Button onClick={handleRefresh} key="refresh-button" icon={<RedoOutlined />}>
+          <Button onClick={handelDataTableLoad} key="refresh-button" icon={<RedoOutlined />}>
             {translate('Refresh')}
           </Button>,
 
@@ -258,7 +203,7 @@ export default function DataTable({ config, extra = [] }: DataTableProps) {
 
       <Table
         columns={dataTableColumns}
-        rowKey={(item: DataRecord) => item._id}
+        rowKey={(item) => item._id}
         dataSource={dataSource}
         pagination={pagination}
         loading={listIsLoading}
