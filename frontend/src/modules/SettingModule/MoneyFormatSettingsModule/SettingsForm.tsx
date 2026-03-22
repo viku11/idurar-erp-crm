@@ -4,7 +4,7 @@ import useLanguage from '@/locale/useLanguage';
 
 import { currencyOptions } from '@/utils/currencyList';
 
-export default function SettingsForm() {
+export default function SettingsForm(): JSX.Element {
   const translate = useLanguage();
 
   return (
@@ -20,11 +20,11 @@ export default function SettingsForm() {
       >
         <Select
           showSearch
-          filterOption={(input, option) =>
+          filterOption={(input: string, option?: { label?: string; value?: string }) =>
             (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
           }
-          filterSort={(optionA, optionB) =>
-            (optionA?.label ?? '').toLowerCase().startsWith((optionB?.label ?? '').toLowerCase())
+          filterSort={(optionA: { label?: string }, optionB: { label?: string }): number =>
+            (optionA?.label ?? '').toLowerCase().startsWith((optionB?.label ?? '').toLowerCase()) ? -1 : 1
           }
           options={currencyOptions()}
         ></Select>
