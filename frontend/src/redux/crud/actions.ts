@@ -1,17 +1,95 @@
 import * as actionTypes from './types';
 import { request } from '@/request';
 
+// @ts-ignore — request module returns untyped response.data
+type RequestResponse = {
+  success: boolean;
+  result: unknown;
+  pagination?: {
+    page: string;
+    count: string;
+  };
+  message?: string;
+};
+
+type Dispatch = (action: CrudAction) => void;
+
+type CrudAction =
+  | { type: typeof actionTypes.RESET_STATE }
+  | { type: typeof actionTypes.RESET_ACTION; keyState: string; payload?: null }
+  | { type: typeof actionTypes.CURRENT_ITEM; payload: Record<string, unknown> }
+  | { type: typeof actionTypes.CURRENT_ACTION; keyState: string; payload: Record<string, unknown> }
+  | { type: typeof actionTypes.REQUEST_LOADING; keyState: string; payload: null }
+  | { type: typeof actionTypes.REQUEST_SUCCESS; keyState: string; payload: unknown }
+  | { type: typeof actionTypes.REQUEST_FAILED; keyState: string; payload: null };
+
+interface ListOptions {
+  page?: number;
+  items?: number;
+  [key: string]: unknown;
+}
+
+interface SearchOptions {
+  [key: string]: string;
+}
+
+interface ResetActionParams {
+  actionType: string;
+}
+
+interface CurrentItemParams {
+  data: Record<string, unknown>;
+}
+
+interface CurrentActionParams {
+  actionType: string;
+  data: Record<string, unknown>;
+}
+
+interface ListParams {
+  entity: string;
+  options?: ListOptions;
+}
+
+interface CreateParams {
+  entity: string;
+  jsonData: Record<string, unknown> | FormData;
+  withUpload?: boolean;
+}
+
+interface ReadParams {
+  entity: string;
+  id: string;
+}
+
+interface UpdateParams {
+  entity: string;
+  id: string;
+  jsonData: Record<string, unknown> | FormData;
+  withUpload?: boolean;
+}
+
+interface DeleteParams {
+  entity: string;
+  id: string;
+}
+
+interface SearchParams {
+  entity: string;
+  options?: SearchOptions;
+}
+
 export const crud = {
   resetState:
-    (props = {}) =>
-    async (dispatch) => {
+    (_props: Record<string, unknown> = {}) =>
+    async (dispatch: Dispatch): Promise<void> => {
       dispatch({
         type: actionTypes.RESET_STATE,
       });
     },
   resetAction:
-    ({ actionType }) =>
-    async (dispatch) => {
+    ({ actionType }: ResetActionParams) =>
+    async (dispatch: Dispatch): Promise<void> => {
       dispatch({
         type: actionTypes.RESET_ACTION,
         keyState: actionType,
@@ -19,16 +97,16 @@ export const crud = {
       });
     },
   currentItem:
-    ({ data }) =>
-    async (dispatch) => {
+    ({ data }: CurrentItemParams) =>
+    async (dispatch: Dispatch): Promise<void> => {
       dispatch({
         type: actionTypes.CURRENT_ITEM,
         payload: { ...data },
       });
     },
   currentAction:
-    ({ actionType, data }) =>
-    async (dispatch) => {
+    ({ actionType, data }: CurrentActionParams) =>
+    async (dispatch: Dispatch): Promise<void> => {
       dispatch({
         type: actionTypes.CURRENT_ACTION,
         keyState: actionType,
@@ -36,23 +114,23 @@ export const crud = {
       });
     },
   list:
-    ({ entity, options = { page: 1, items: 10 } }) =>
-    async (dispatch) => {
+    ({ entity, options = { page: 1, items: 10 } }: ListParams) =>
+    async (dispatch: Dispatch): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
         keyState: 'list',
         payload: null,
       });
 
-      let data = await request.list({ entity, options });
+      const data: RequestResponse = await request.list({ entity, options: options as Record<string, string> });
 
       if (data.success === true) {
         const result = {
           items: data.result,
           pagination: {
-            current: parseInt(data.pagination.page, 10),
+            current: parseInt(data.pagination!.page, 10),
             pageSize: options?.items,
-            total: parseInt(data.pagination.count, 10),
+            total: parseInt(data.pagination!.count, 10),
           },
         };
         dispatch({
@@ -69,18 +147,18 @@ export const crud = {
       }
     },
   create:
-    ({ entity, jsonData, withUpload = false }) =>
-    async (dispatch) => {
+    ({ entity, jsonData, withUpload = false }: CreateParams) =>
+    async (dispatch: Dispatch): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
         keyState: 'create',
         payload: null,
       });
-      let data = null;
+      let data: RequestResponse;
       if (withUpload) {
-        data = await request.createAndUpload({ entity, jsonData });
+        data = await request.createAndUpload({ entity, jsonData: jsonData as FormData });
       } else {
-        data = await request.create({ entity, jsonData });
+        data = await request.create({ entity, jsonData: jsonData as Record<string, unknown> });
       }
 
       if (data.success === true) {
@@ -92,7 +170,7 @@ export const crud = {
 
         dispatch({
           type: actionTypes.CURRENT_ITEM,
-          payload: data.result,
+          payload: data.result as Record<string, unknown>,
         });
       } else {
         dispatch({
@@ -103,20 +181,20 @@ export const crud = {
       }
     },
   read:
-    ({ entity, id }) =>
-    async (dispatch) => {
+    ({ entity, id }: ReadParams) =>
+    async (dispatch: Dispatch): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
         keyState: 'read',
         payload: null,
       });
 
-      let data = await request.read({ entity, id });
+      const data: RequestResponse = await request.read({ entity, id });
 
       if (data.success === true) {
         dispatch({
           type: actionTypes.CURRENT_ITEM,
-          payload: data.result,
+          payload: data.result as Record<string, unknown>,
         });
         dispatch({
           type: actionTypes.REQUEST_SUCCESS,
@@ -132,20 +210,20 @@ export const crud = {
       }
     },
   update:
-    ({ entity, id, jsonData, withUpload = false }) =>
-    async (dispatch) => {
+    ({ entity, id, jsonData, withUpload = false }: UpdateParams) =>
+    async (dispatch: Dispatch): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
         keyState: 'update',
         payload: null,
       });
 
-      let data = null;
+      let data: RequestResponse;
 
       if (withUpload) {
-        data = await request.updateAndUpload({ entity, id, jsonData });
+        data = await request.updateAndUpload({ entity, id, jsonData: jsonData as FormData });
       } else {
-        data = await request.update({ entity, id, jsonData });
+        data = await request.update({ entity, id, jsonData: jsonData as Record<string, unknown> });
       }
 
       if (data.success === true) {
@@ -156,7 +234,7 @@ export const crud = {
         });
         dispatch({
           type: actionTypes.CURRENT_ITEM,
-          payload: data.result,
+          payload: data.result as Record<string, unknown>,
         });
       } else {
         dispatch({
@@ -168,8 +246,8 @@ export const crud = {
     },
 
   delete:
-    ({ entity, id }) =>
-    async (dispatch) => {
+    ({ entity, id }: DeleteParams) =>
+    async (dispatch: Dispatch): Promise<void> => {
       dispatch({
         type: actionTypes.RESET_ACTION,
         keyState: 'delete',
@@ -180,7 +258,7 @@ export const crud = {
         payload: null,
       });
 
-      let data = await request.delete({ entity, id });
+      const data: RequestResponse = await request.delete({ entity, id });
 
       if (data.success === true) {
         dispatch({
@@ -198,15 +276,15 @@ export const crud = {
     },
 
   search:
-    ({ entity, options = {} }) =>
-    async (dispatch) => {
+    ({ entity, options = {} }: SearchParams) =>
+    async (dispatch: Dispatch): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
         keyState: 'search',
         payload: null,
       });
 
-      let data = await request.search({ entity, options });
+      const data: RequestResponse = await request.search({ entity, options });
 
       if (data.success === true) {
         dispatch({
