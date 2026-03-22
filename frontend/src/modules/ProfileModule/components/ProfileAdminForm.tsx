@@ -1,10 +1,16 @@
-import { Form, Input, Select } from 'antd';
-import { UploadOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons';
-import { message, Upload, Button, Switch } from 'antd';
+import { Form, Input } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
+import { message, Upload, Button } from 'antd';
 
 import useLanguage from '@/locale/useLanguage';
 
-const beforeUpload = (file) => {
+import type { RcFile, UploadChangeParam, UploadFile } from 'antd/es/upload/interface';
+
+interface AdminFormProps {
+  isUpdateForm?: boolean;
+}
+
+const beforeUpload = (file: RcFile): boolean => {
   const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
   if (!isJpgOrPng) {
     message.error('You can only upload JPG/PNG file!');
@@ -16,7 +22,7 @@ const beforeUpload = (file) => {
   return false;
 };
 
-export default function AdminForm({ isUpdateForm = false }) {
+export default function AdminForm({ isUpdateForm = false }: AdminFormProps): JSX.Element {
   const translate = useLanguage();
   return (
     <>
@@ -61,7 +67,7 @@ export default function AdminForm({ isUpdateForm = false }) {
         name="file"
         label={translate('Photo')}
         valuePropName="fileList"
-        getValueFromEvent={(e) => e.fileList}
+        getValueFromEvent={(e: UploadChangeParam<UploadFile>): UploadFile[] => e.fileList}
       >
         <Upload
           beforeUpload={beforeUpload}
