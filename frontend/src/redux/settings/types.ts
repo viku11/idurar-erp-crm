@@ -1,0 +1,6 @@
+export const RESET_STATE = 'SETTINGS_RESET_STATE' as const;
+
+export const REQUEST_LOADING = 'SETTINGS_REQUEST_LOADING' as const;
+export const REQUEST_SUCCESS = 'SETTINGS_REQUEST_SUCCESS' as const;
+export const REQUEST_FAILED = 'SETTINGS_REQUEST_FAILED' as const;
+export const UPDATE_CURRENCY = 'SETTINGS_UPDATE_CURRENCY' as const;
