@@ -1,3 +1,4 @@
+import React from 'react';
 import useLanguage from '@/locale/useLanguage';
 
 import { Layout, Col, Divider, Typography } from 'antd';
@@ -10,7 +11,13 @@ import logo from '@/style/images/idurar-crm-erp.svg';
 const { Content } = Layout;
 const { Title } = Typography;
 
-const AuthModule = ({ authContent, AUTH_TITLE, isForRegistre = false }) => {
+interface AuthModuleProps {
+  authContent: React.ReactNode;
+  AUTH_TITLE: string;
+  isForRegistre?: boolean;
+}
+
+const AuthModule: React.FC<AuthModuleProps> = ({ authContent, AUTH_TITLE, isForRegistre = false }) => {
   const translate = useLanguage();
   return (
     <AuthLayout sideContent={<SideContent />}>
