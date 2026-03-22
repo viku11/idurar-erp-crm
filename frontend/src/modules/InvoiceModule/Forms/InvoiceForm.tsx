@@ -19,8 +19,20 @@ import calculate from '@/utils/calculate';
 import { useSelector } from 'react-redux';
 import SelectAsync from '@/components/SelectAsync';
 
-export default function InvoiceForm({ subTotal = 0, current = null }) {
-  const { last_invoice_number } = useSelector(selectFinanceSettings);
+interface InvoiceCurrent {
+  taxRate?: number;
+  year: number;
+  number: number;
+}
+
+interface InvoiceFormProps {
+  subTotal?: number;
+  current?: InvoiceCurrent | null;
+}
+
+export default function InvoiceForm({ subTotal = 0, current = null }: InvoiceFormProps): JSX.Element {
+  const financeSettings = useSelector(selectFinanceSettings) as Record<string, unknown>;
+  const last_invoice_number = financeSettings.last_invoice_number as number | undefined;
 
   if (last_invoice_number === undefined) {
     return <></>;
@@ -29,38 +41,44 @@ export default function InvoiceForm({ subTotal = 0, current = null }) {
   return <LoadInvoiceForm subTotal={subTotal} current={current} />;
 }
 
-function LoadInvoiceForm({ subTotal = 0, current = null }) {
+interface LoadInvoiceFormProps {
+  subTotal: number;
+  current: InvoiceCurrent | null;
+}
+
+function LoadInvoiceForm({ subTotal = 0, current = null }: LoadInvoiceFormProps): JSX.Element {
   const translate = useLanguage();
   const { dateFormat } = useDate();
-  const { last_invoice_number } = useSelector(selectFinanceSettings);
-  const [total, setTotal] = useState(0);
-  const [taxRate, setTaxRate] = useState(0);
-  const [taxTotal, setTaxTotal] = useState(0);
-  const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
-  const [lastNumber, setLastNumber] = useState(() => last_invoice_number + 1);
+  const financeSettings = useSelector(selectFinanceSettings) as Record<string, unknown>;
+  const last_invoice_number = financeSettings.last_invoice_number as number;
+  const [total, setTotal] = useState<number>(0);
+  const [taxRate, setTaxRate] = useState<number>(0);
+  const [taxTotal, setTaxTotal] = useState<number>(0);
+  const [currentYear, setCurrentYear] = useState<number>(() => new Date().getFullYear());
+  const [lastNumber, setLastNumber] = useState<number>(() => last_invoice_number + 1);
 
-  const handelTaxChange = (value) => {
+  const handelTaxChange = (value: number): void => {
     setTaxRate(value / 100);
   };
 
   useEffect(() => {
     if (current) {
-      const { taxRate = 0, year, number } = current;
-      setTaxRate(taxRate / 100);
+      const { taxRate: currentTaxRate = 0, year, number } = current;
+      setTaxRate(currentTaxRate / 100);
       setCurrentYear(year);
       setLastNumber(number);
     }
   }, [current]);
   useEffect(() => {
     const currentTotal = calculate.add(calculate.multiply(subTotal, taxRate), subTotal);
-    setTaxTotal(Number.parseFloat(calculate.multiply(subTotal, taxRate)));
-    setTotal(Number.parseFloat(currentTotal));
+    setTaxTotal(Number.parseFloat(String(calculate.multiply(subTotal, taxRate))));
+    setTotal(Number.parseFloat(String(currentTotal)));
   }, [subTotal, taxRate]);
 
-  const addField = useRef(false);
+  const addField = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
-    addField.current.click();
+    addField.current?.click();
   }, []);
 
   return (
@@ -76,6 +94,7 @@ function LoadInvoiceForm({ subTotal = 0, current = null }) {
               },
             ]}
           >
+            {/* @ts-ignore - AutoCompleteAsync is untyped */}
             <AutoCompleteAsync
               entity={'client'}
               displayLabels={['name']}
@@ -194,6 +213,7 @@ function LoadInvoiceForm({ subTotal = 0, current = null }) {
         {(fields, { add, remove }) => (
           <>
             {fields.map((field) => (
+              // @ts-ignore - ItemRow is untyped
               <ItemRow key={field.key} remove={remove} field={field} current={current}></ItemRow>
             ))}
             <Form.Item>
@@ -233,6 +253,7 @@ function LoadInvoiceForm({ subTotal = 0, current = null }) {
             </p>
           </Col>
           <Col className="gutter-row" span={5}>
+            {/* @ts-ignore - MoneyInputFormItem is untyped */}
             <MoneyInputFormItem readOnly value={subTotal} />
           </Col>
         </Row>
@@ -247,19 +268,22 @@ function LoadInvoiceForm({ subTotal = 0, current = null }) {
               ]}
             >
               <Select
-                value={taxRate}
-                onChange={handelTaxChange}
-                entity={'taxes'}
-                outputValue={'taxValue'}
-                displayLabels={['taxName']}
-                withRedirect={true}
-                urlToRedirect="/taxes"
-                redirectLabel={translate('Add New Tax')}
-                placeholder={translate('Select Tax Value')}
+                {...({
+                  value: taxRate,
+                  onChange: handelTaxChange,
+                  entity: 'taxes',
+                  outputValue: 'taxValue',
+                  displayLabels: ['taxName'],
+                  withRedirect: true,
+                  urlToRedirect: '/taxes',
+                  redirectLabel: translate('Add New Tax'),
+                  placeholder: translate('Select Tax Value'),
+                } as Record<string, unknown>)}
               />
             </Form.Item>
           </Col>
           <Col className="gutter-row" span={5}>
+            {/* @ts-ignore - MoneyInputFormItem is untyped */}
             <MoneyInputFormItem readOnly value={taxTotal} />
           </Col>
         </Row>
@@ -277,6 +301,7 @@ function LoadInvoiceForm({ subTotal = 0, current = null }) {
             </p>
           </Col>
           <Col className="gutter-row" span={5}>
+            {/* @ts-ignore - MoneyInputFormItem is untyped */}
             <MoneyInputFormItem readOnly value={total} />
           </Col>
         </Row>
