@@ -1,7 +1,31 @@
 import { notification } from 'antd';
 import codeMessage from './codeMessage';
 
-const errorHandler = (error) => {
+interface ErrorResponseData {
+  message?: string;
+  jwtExpired?: boolean;
+  error?: {
+    name?: string;
+  };
+}
+
+interface ErrorResponse {
+  status: number;
+  data?: ErrorResponseData;
+  error?: string;
+}
+
+interface RequestError {
+  response?: ErrorResponse;
+}
+
+interface ErrorResult {
+  success: boolean;
+  result: null;
+  message: string;
+}
+
+const errorHandler = (error: RequestError): ErrorResult | ErrorResponseData | undefined => {
   if (!navigator.onLine) {
     notification.config({
       duration: 15,
@@ -39,8 +63,8 @@ const errorHandler = (error) => {
   }
 
   if (response && response.data && response.data.jwtExpired) {
-    const result = window.localStorage.getItem('auth');
-    const jsonFile = window.localStorage.getItem('isLogout');
+    const result: string | null = window.localStorage.getItem('auth');
+    const jsonFile: string | null = window.localStorage.getItem('isLogout');
     const { isLogout } = (jsonFile && JSON.parse(jsonFile)) || false;
     window.localStorage.removeItem('auth');
     window.localStorage.removeItem('isLogout');
@@ -50,10 +74,10 @@ const errorHandler = (error) => {
   }
 
   if (response && response.status) {
-    const message = response.data && response.data.message;
+    const message: string | undefined = response.data && response.data.message;
 
-    const errorText = message || codeMessage[response.status];
-    const { status, error } = response;
+    const errorText: string | undefined = message || codeMessage[response.status];
+    const { status } = response;
     notification.config({
       duration: 20,
       maxCount: 2,
