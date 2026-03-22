@@ -1,4 +1,4 @@
-const tagColor = [
+const tagColor: readonly string[] = [
   'magenta',
   'red',
   'volcano',
@@ -10,6 +10,6 @@ const tagColor = [
   'blue',
   'geekblue',
   'purple',
-];
+] as const;
 
 export default tagColor;
