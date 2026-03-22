@@ -1,13 +1,54 @@
 import * as actionTypes from './types';
 
-const INITIAL_STATE = {
+interface AuthState {
+  current: Record<string, unknown> | null;
+  isLoggedIn: boolean;
+  isLoading: boolean;
+  isSuccess: boolean;
+}
+
+interface RequestLoadingAction {
+  type: typeof actionTypes.REQUEST_LOADING;
+}
+
+interface RequestFailedAction {
+  type: typeof actionTypes.REQUEST_FAILED;
+}
+
+interface RequestSuccessAction {
+  type: typeof actionTypes.REQUEST_SUCCESS;
+  payload: Record<string, unknown>;
+}
+
+interface RegisterSuccessAction {
+  type: typeof actionTypes.REGISTER_SUCCESS;
+}
+
+interface LogoutSuccessAction {
+  type: typeof actionTypes.LOGOUT_SUCCESS;
+}
+
+interface LogoutFailedAction {
+  type: typeof actionTypes.LOGOUT_FAILED;
+  payload: Record<string, unknown>;
+}
+
+type AuthAction =
+  | RequestLoadingAction
+  | RequestFailedAction
+  | RequestSuccessAction
+  | RegisterSuccessAction
+  | LogoutSuccessAction
+  | LogoutFailedAction;
+
+const INITIAL_STATE: AuthState = {
   current: {},
   isLoggedIn: false,
   isLoading: false,
   isSuccess: false,
 };
 
-const authReducer = (state = INITIAL_STATE, action) => {
+const authReducer = (state: AuthState = INITIAL_STATE, action: AuthAction): AuthState => {
   switch (action.type) {
     case actionTypes.REQUEST_LOADING:
       return {
