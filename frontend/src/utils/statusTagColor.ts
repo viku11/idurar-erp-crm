@@ -1,4 +1,11 @@
-const colors = [
+interface StatusColor {
+  value: string;
+  label: string;
+  color?: string;
+  icon?: string;
+}
+
+const colors: StatusColor[] = [
   { value: 'default', label: 'default', icon: '🌟' },
   { value: 'draft', label: 'draft', icon: '📝' },
   { value: 'pending', label: 'pending', color: 'magenta', icon: '⏳' },
@@ -39,21 +46,26 @@ const colors = [
   { value: 'free', label: 'free', color: 'green', icon: '💡' },
 ];
 
-const statusTagColorList = (tags = []) => {
-  const list = [];
+const statusTagColorList = (tags: string[] = []): StatusColor[] => {
+  const list: StatusColor[] = [];
 
-  tags.map((x) => {
-    const element = colors.find((obj) => obj?.value?.toLowerCase() === x?.toLowerCase());
+  tags.map((x: string) => {
+    const element: StatusColor | undefined = colors.find(
+      (obj: StatusColor) => obj.value.toLowerCase() === x.toLowerCase()
+    );
     if (element) list.push(element);
     else list.push({ value: x, label: x });
   });
   return list;
 };
 
-const tagColor = (status) => {
-  const element = colors.find((obj) => obj?.value?.toLowerCase() === status?.toLowerCase());
+const tagColor = (status: string): StatusColor => {
+  const element: StatusColor | undefined = colors.find(
+    (obj: StatusColor) => obj.value.toLowerCase() === status.toLowerCase()
+  );
   if (element) return element;
   else return { value: status, label: status };
 };
 
 export { statusTagColorList, tagColor };
+export type { StatusColor };
