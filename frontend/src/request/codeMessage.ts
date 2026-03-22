@@ -1,4 +1,4 @@
-const codeMessage = {
+const codeMessage: Record<number, string> = {
   200: 'The server successfully returned the requested data. ',
   201: 'Create or modify data successfully. ',
   202: 'A request has entered the background queue (asynchronous task). ',
