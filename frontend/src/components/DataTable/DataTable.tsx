@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, ReactNode } from 'react';
 
 import {
   EyeOutlined,
@@ -10,6 +10,8 @@ import {
   ArrowLeftOutlined,
 } from '@ant-design/icons';
 import { Dropdown, Table, Button, Input } from 'antd';
+import type { MenuProps, TablePaginationConfig } from 'antd';
+import type { ColumnsType } from 'antd/es/table/interface';
 import { PageHeader } from '@ant-design/pro-layout';
 
 import { useSelector, useDispatch } from 'react-redux';
@@ -19,16 +21,69 @@ import useLanguage from '@/locale/useLanguage';
 import { dataForTable } from '@/utils/dataStructure';
 import { useMoney, useDate } from '@/settings';
 
+// @ts-ignore - shortid has no type declarations
 import { generate as uniqueId } from 'shortid';
 
 import { useCrudContext } from '@/context/crud';
 
-function AddNewItem({ config }) {
+interface SearchConfig {
+  searchFields?: string;
+}
+
+interface FieldConfig {
+  fieldName: string;
+  fieldType: string;
+  [key: string]: unknown;
+}
+
+interface DataTableConfig {
+  entity: string;
+  dataTableColumns: ColumnsType<RecordItem>;
+  DATATABLE_TITLE: string;
+  fields?: FieldConfig[];
+  searchConfig?: SearchConfig;
+  ADD_NEW_ENTITY: string;
+}
+
+interface RecordItem {
+  _id: string;
+  [key: string]: unknown;
+}
+
+interface PaginationState {
+  current: number;
+  pageSize: number;
+  total: number;
+  showSizeChanger?: boolean;
+}
+
+interface ListResult {
+  items: RecordItem[];
+  pagination: PaginationState;
+}
+
+interface ListState {
+  result: ListResult;
+  isLoading: boolean;
+  isSuccess: boolean;
+}
+
+interface AddNewItemProps {
+  config: DataTableConfig;
+}
+
+interface DataTableProps {
+  config: DataTableConfig;
+  extra?: MenuProps['items'];
+}
+
+function AddNewItem({ config }: AddNewItemProps) {
+  // @ts-ignore - useCrudContext is untyped from a .jsx file
   const { crudContextAction } = useCrudContext();
   const { collapsedBox, panel } = crudContextAction;
   const { ADD_NEW_ENTITY } = config;
 
-  const handelClick = () => {
+  const handelClick = (): void => {
     panel.open();
     collapsedBox.close();
   };
@@ -39,15 +94,16 @@ function AddNewItem({ config }) {
     </Button>
   );
 }
-export default function DataTable({ config, extra = [] }) {
+export default function DataTable({ config, extra = [] }: DataTableProps) {
   let { entity, dataTableColumns, DATATABLE_TITLE, fields, searchConfig } = config;
+  // @ts-ignore - useCrudContext is untyped from a .jsx file
   const { crudContextAction } = useCrudContext();
   const { panel, collapsedBox, modal, readBox, editBox, advancedBox } = crudContextAction;
   const translate = useLanguage();
   const { moneyFormatter } = useMoney();
   const { dateFormat } = useDate();
 
-  const items = [
+  const items: MenuProps['items'] = [
     {
       label: translate('Show'),
       key: 'read',
@@ -58,9 +114,9 @@ export default function DataTable({ config, extra = [] }) {
       key: 'edit',
       icon: <EditOutlined />,
     },
-    ...extra,
+    ...(extra ?? []),
     {
-      type: 'divider',
+      type: 'divider' as const,
     },
 
     {
@@ -70,33 +126,39 @@ export default function DataTable({ config, extra = [] }) {
     },
   ];
 
-  const handleRead = (record) => {
+  const handleRead = (record: RecordItem): void => {
+    // @ts-ignore - redux thunk dispatch
     dispatch(crud.currentItem({ data: record }));
     panel.open();
     collapsedBox.open();
     readBox.open();
   };
-  function handleEdit(record) {
+  function handleEdit(record: RecordItem): void {
+    // @ts-ignore - redux thunk dispatch
     dispatch(crud.currentItem({ data: record }));
+    // @ts-ignore - redux thunk dispatch
     dispatch(crud.currentAction({ actionType: 'update', data: record }));
     editBox.open();
     panel.open();
     collapsedBox.open();
   }
-  function handleDelete(record) {
+  function handleDelete(record: RecordItem): void {
+    // @ts-ignore - redux thunk dispatch
     dispatch(crud.currentAction({ actionType: 'delete', data: record }));
     modal.open();
   }
 
-  function handleUpdatePassword(record) {
+  function handleUpdatePassword(record: RecordItem): void {
+    // @ts-ignore - redux thunk dispatch
     dispatch(crud.currentItem({ data: record }));
+    // @ts-ignore - redux thunk dispatch
     dispatch(crud.currentAction({ actionType: 'update', data: record }));
     advancedBox.open();
     panel.open();
     collapsedBox.open();
   }
 
-  let dispatchColumns = [];
+  let dispatchColumns: ColumnsType<RecordItem> = [];
   if (fields) {
     dispatchColumns = [...dataForTable({ fields, translate, moneyFormatter, dateFormat })];
   } else {
@@ -108,12 +170,12 @@ export default function DataTable({ config, extra = [] }) {
     {
       title: '',
       key: 'action',
-      fixed: 'right',
-      render: (_, record) => (
+      fixed: 'right' as const,
+      render: (_: unknown, record: RecordItem) => (
         <Dropdown
           menu={{
             items,
-            onClick: ({ key }) => {
+            onClick: ({ key }: { key: string }) => {
               switch (key) {
                 case 'read':
                   handleRead(record);
@@ -139,31 +201,35 @@ export default function DataTable({ config, extra = [] }) {
         >
           <EllipsisOutlined
             style={{ cursor: 'pointer', fontSize: '24px' }}
-            onClick={(e) => e.preventDefault()}
+            onClick={(e: React.MouseEvent) => e.preventDefault()}
           />
         </Dropdown>
       ),
     },
   ];
 
-  const { result: listResult, isLoading: listIsLoading } = useSelector(selectListItems);
+  const { result: listResult, isLoading: listIsLoading } = useSelector(selectListItems) as ListState;
 
   const { pagination, items: dataSource } = listResult;
 
   const dispatch = useDispatch();
 
-  const handelDataTableLoad = useCallback((pagination) => {
+  const handelDataTableLoad = useCallback((pagination: TablePaginationConfig) => {
     const options = { page: pagination.current || 1, items: pagination.pageSize || 10 };
+    // @ts-ignore - redux thunk dispatch
     dispatch(crud.list({ entity, options }));
   }, []);
 
-  const filterTable = (e) => {
+  const filterTable = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const value = e.target.value;
+    // @ts-ignore - crud.list accepts different option shapes at runtime
     const options = { q: value, fields: searchConfig?.searchFields || '' };
+    // @ts-ignore - redux thunk dispatch
     dispatch(crud.list({ entity, options }));
   };
 
-  const dispatcher = () => {
+  const dispatcher = (): void => {
+    // @ts-ignore - redux thunk dispatch
     dispatch(crud.list({ entity }));
   };
 
@@ -189,7 +255,11 @@ export default function DataTable({ config, extra = [] }) {
             placeholder={translate('search')}
             allowClear
           />,
-          <Button onClick={handelDataTableLoad} key={`${uniqueId()}`} icon={<RedoOutlined />}>
+          <Button
+            onClick={() => handelDataTableLoad({})}
+            key={`${uniqueId()}`}
+            icon={<RedoOutlined />}
+          >
             {translate('Refresh')}
           </Button>,
 
@@ -200,9 +270,9 @@ export default function DataTable({ config, extra = [] }) {
         }}
       ></PageHeader>
 
-      <Table
+      <Table<RecordItem>
         columns={dataTableColumns}
-        rowKey={(item) => item._id}
+        rowKey={(item: RecordItem) => item._id}
         dataSource={dataSource}
         pagination={pagination}
         loading={listIsLoading}
