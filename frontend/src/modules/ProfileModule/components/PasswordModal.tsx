@@ -5,24 +5,29 @@ import { Form, Input, Modal } from 'antd';
 
 import useLanguage from '@/locale/useLanguage';
 
-const PasswordModal = () => {
+interface PasswordFormValues {
+  password: string;
+  passwordCheck: string;
+}
+
+const PasswordModal: React.FC = () => {
   const translate = useLanguage();
 
   const { state, profileContextAction } = useProfileContext();
   const { modal } = profileContextAction;
   const { passwordModal } = state;
-  const modalTitle = translate('Update Password');
+  const modalTitle: string = translate('Update Password');
 
-  const [passForm] = Form.useForm();
+  const [passForm] = Form.useForm<PasswordFormValues>();
 
   const { onFetch } = useOnFetch();
 
-  const handelSubmit = (fieldsValue) => {
-    const entity = 'admin/profile/password/';
-    const updateFn = async () => {
-      return await request.patch({ entity, jsonData: fieldsValue });
+  const handelSubmit = (fieldsValue: PasswordFormValues): void => {
+    const entity: string = 'admin/profile/password/';
+    const updateFn = async (): Promise<{ result: unknown; success: boolean }> => {
+      return await request.patch({ entity, jsonData: fieldsValue as unknown as Record<string, unknown> });
     };
-    const callback = updateFn();
+    const callback: Promise<{ result: unknown; success: boolean }> = updateFn();
     onFetch(callback);
     passForm.resetFields();
     modal.close();
@@ -60,7 +65,7 @@ const PasswordModal = () => {
               required: true,
             },
             ({ getFieldValue }) => ({
-              validator(_, value) {
+              validator(_: unknown, value: string) {
                 if (!value || getFieldValue('password') === value) {
                   return Promise.resolve();
                 }
