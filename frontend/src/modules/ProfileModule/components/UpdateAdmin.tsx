@@ -1,4 +1,5 @@
 import { useProfileContext } from '@/context/profileContext';
+// @ts-ignore - shortid lacks type declarations
 import { generate as uniqueId } from 'shortid';
 import { CloseCircleOutlined, SaveOutlined } from '@ant-design/icons';
 import { Button, Col, Form, Row } from 'antd';
@@ -7,13 +8,27 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ProfileAdminForm from './ProfileAdminForm';
 
+// @ts-ignore - actions.js is not yet migrated to TypeScript
 import { updateProfile } from '@/redux/auth/actions';
 
 import { selectCurrentAdmin } from '@/redux/auth/selectors';
 
 import useLanguage from '@/locale/useLanguage';
 
-const UpdateAdmin = ({ config }) => {
+interface UpdateAdminConfig {
+  ENTITY_NAME: string;
+}
+
+interface UpdateAdminProps {
+  config: UpdateAdminConfig;
+}
+
+interface FieldsValue {
+  file?: Array<{ originFileObj: File }>;
+  [key: string]: unknown;
+}
+
+const UpdateAdmin: React.FC<UpdateAdminProps> = ({ config }) => {
   const translate = useLanguage();
 
   const { profileContextAction } = useProfileContext();
@@ -28,15 +43,16 @@ const UpdateAdmin = ({ config }) => {
     form.setFieldsValue(currentAdmin);
   }, [currentAdmin]);
 
-  const handleSubmit = () => {
+  const handleSubmit = (): void => {
     form.submit();
   };
 
-  const onSubmit = (fieldsValue) => {
+  const onSubmit = (fieldsValue: FieldsValue): void => {
     if (fieldsValue.file) {
-      fieldsValue.file = fieldsValue.file[0].originFileObj;
+      fieldsValue.file = fieldsValue.file[0].originFileObj as unknown as Array<{ originFileObj: File }>;
     }
 
+    // @ts-ignore - updateProfile returns a thunk, dispatch typing is unaware
     dispatch(updateProfile({ entity: 'admin/profile', jsonData: fieldsValue }));
   };
 
@@ -71,7 +87,7 @@ const UpdateAdmin = ({ config }) => {
           padding: '20px 0px',
         }}
       ></PageHeader>
-      <Row align="start">
+      <Row align="top">
         <Col xs={{ span: 24 }} sm={{ span: 6 }} md={{ span: 4 }}></Col>
         <Col xs={{ span: 16 }}>
           <Form
