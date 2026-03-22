@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 
+// @ts-ignore - actions.js is not yet migrated to TypeScript
 import { resetPassword } from '@/redux/auth/actions';
 import { selectAuth } from '@/redux/auth/selectors';
 
@@ -15,15 +16,37 @@ import useLanguage from '@/locale/useLanguage';
 import Loading from '@/components/Loading';
 import AuthModule from '@/modules/AuthModule';
 
-const ResetPassword = () => {
+interface AuthState {
+  current: Record<string, unknown> | null;
+  isLoggedIn: boolean;
+  isLoading: boolean;
+  isSuccess: boolean;
+}
+
+interface RootState {
+  auth: AuthState;
+  [key: string]: unknown;
+}
+
+interface ResetPasswordFormValues {
+  password: string;
+}
+
+interface ResetPasswordParams {
+  userId: string;
+  resetToken: string;
+}
+
+const ResetPassword: React.FC = () => {
   const translate = useLanguage();
-  const { isLoading, isSuccess } = useSelector(selectAuth);
+  const { isLoading, isSuccess } = useSelector<RootState, AuthState>(selectAuth);
   const navigate = useNavigate();
-  const { userId, resetToken } = useParams();
+  const { userId, resetToken } = useParams<Record<string, string>>();
 
   const dispatch = useDispatch();
-  const onFinish = (values) => {
+  const onFinish = (values: ResetPasswordFormValues): void => {
     dispatch(
+      // @ts-ignore - resetPassword returns a thunk from untyped actions.js
       resetPassword({
         resetPasswordData: {
           password: values.password,
@@ -38,7 +61,7 @@ const ResetPassword = () => {
     if (isSuccess) navigate('/');
   }, [isSuccess]);
 
-  const FormContainer = () => {
+  const FormContainer: React.FC = () => {
     return (
       <Loading isLoading={isLoading}>
         <Form
