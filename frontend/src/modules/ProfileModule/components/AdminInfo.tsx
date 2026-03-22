@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import { useProfileContext } from '@/context/profileContext';
+// @ts-ignore - shortid lacks type declarations
 import { generate as uniqueId } from 'shortid';
 import { EditOutlined, LockOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Avatar, Button, Col, Descriptions, Divider, Row } from 'antd';
@@ -13,13 +13,29 @@ import { selectCurrentAdmin } from '@/redux/auth/selectors';
 import useLanguage from '@/locale/useLanguage';
 import { FILE_BASE_URL } from '@/config/serverApiConfig';
 
-const AdminInfo = ({ config }) => {
+interface AdminData {
+  name: string;
+  surname: string;
+  email: string;
+  role: string;
+  photo: string;
+}
+
+interface AdminInfoConfig {
+  ENTITY_NAME: string;
+}
+
+interface AdminInfoProps {
+  config: AdminInfoConfig;
+}
+
+const AdminInfo: React.FC<AdminInfoProps> = ({ config }) => {
   const translate = useLanguage();
   const navigate = useNavigate();
   const { profileContextAction } = useProfileContext();
   const { modal, updatePanel } = profileContextAction;
   const { ENTITY_NAME } = config;
-  const currentAdmin = useSelector(selectCurrentAdmin);
+  const currentAdmin = useSelector(selectCurrentAdmin) as AdminData | null;
 
   return (
     <>
