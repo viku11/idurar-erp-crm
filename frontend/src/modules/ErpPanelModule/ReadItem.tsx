@@ -15,6 +15,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import useLanguage from '@/locale/useLanguage';
 import { erp } from '@/redux/erp/actions';
 
+// @ts-ignore — shortid has no bundled type declarations
 import { generate as uniqueId } from 'shortid';
 
 import { selectCurrentItem } from '@/redux/erp/selectors';
@@ -24,7 +25,56 @@ import { useMoney, useDate } from '@/settings';
 import useMail from '@/hooks/useMail';
 import { useNavigate } from 'react-router-dom';
 
-const Item = ({ item, currentErp }) => {
+interface ErpClient {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+}
+
+interface ErpLineItem {
+  _id: string;
+  itemName: string;
+  description: string;
+  price: number;
+  quantity: number;
+  total: number;
+}
+
+interface ErpRecord {
+  _id?: string;
+  status: string;
+  paymentStatus?: string;
+  client: ErpClient;
+  subTotal: number;
+  taxTotal: number;
+  taxRate: number;
+  total: number;
+  credit: number;
+  number: number;
+  year: number;
+  currency?: string;
+  items?: ErpLineItem[];
+  invoice?: ErpRecord & { items?: ErpLineItem[] };
+  [key: string]: unknown;
+}
+
+interface ItemProps {
+  item: ErpLineItem;
+  currentErp: ErpRecord;
+}
+
+interface ReadItemConfig {
+  entity: string;
+  ENTITY_NAME: string;
+}
+
+interface ReadItemProps {
+  config: ReadItemConfig;
+  selectedItem?: ErpRecord;
+}
+
+const Item: React.FC<ItemProps> = ({ item, currentErp }) => {
   const { moneyFormatter } = useMoney();
   return (
     <Row gutter={[12, 0]} key={item._id}>
@@ -67,7 +117,7 @@ const Item = ({ item, currentErp }) => {
   );
 };
 
-export default function ReadItem({ config, selectedItem }) {
+export default function ReadItem({ config, selectedItem }: ReadItemProps) {
   const translate = useLanguage();
   const { entity, ENTITY_NAME } = config;
   const dispatch = useDispatch();
@@ -76,9 +126,9 @@ export default function ReadItem({ config, selectedItem }) {
   const { moneyFormatter } = useMoney();
   const { send, isLoading: mailInProgress } = useMail({ entity });
 
-  const { result: currentResult } = useSelector(selectCurrentItem);
+  const { result: currentResult } = useSelector(selectCurrentItem) as { result: unknown };
 
-  const resetErp = {
+  const resetErp: ErpRecord = {
     status: '',
     client: {
       name: '',
@@ -95,20 +145,20 @@ export default function ReadItem({ config, selectedItem }) {
     year: 0,
   };
 
-  const [itemslist, setItemsList] = useState([]);
-  const [currentErp, setCurrentErp] = useState(selectedItem ?? resetErp);
-  const [client, setClient] = useState({});
+  const [itemslist, setItemsList] = useState<ErpLineItem[]>([]);
+  const [currentErp, setCurrentErp] = useState<ErpRecord>(selectedItem ?? resetErp);
+  const [client, setClient] = useState<ErpClient>({} as ErpClient);
 
   useEffect(() => {
     if (currentResult) {
-      const { items, invoice, ...others } = currentResult;
+      const { items, invoice, ...others } = currentResult as ErpRecord;
 
       if (items) {
         setItemsList(items);
-        setCurrentErp(currentResult);
-      } else if (invoice.items) {
+        setCurrentErp(currentResult as ErpRecord);
+      } else if (invoice?.items) {
         setItemsList(invoice.items);
-        setCurrentErp({ ...invoice.items, ...others, ...invoice });
+        setCurrentErp({ ...invoice.items, ...others, ...invoice } as unknown as ErpRecord);
       }
     }
     return () => {
@@ -133,11 +183,13 @@ export default function ReadItem({ config, selectedItem }) {
         ghost={false}
         tags={[
           <span key="status">{currentErp.status && translate(currentErp.status)}</span>,
-          currentErp.paymentStatus && (
-            <span key="paymentStatus">
-              {currentErp.paymentStatus && translate(currentErp.paymentStatus)}
-            </span>
-          ),
+          ...(currentErp.paymentStatus
+            ? [
+                <span key="paymentStatus">
+                  {translate(currentErp.paymentStatus)}
+                </span>,
+              ]
+            : []),
         ]}
         extra={[
           <Button
@@ -165,7 +217,7 @@ export default function ReadItem({ config, selectedItem }) {
             key={`${uniqueId()}`}
             loading={mailInProgress}
             onClick={() => {
-              send(currentErp._id);
+              send(currentErp._id as string);
             }}
             icon={<MailOutlined />}
           >
@@ -174,7 +226,7 @@ export default function ReadItem({ config, selectedItem }) {
           <Button
             key={`${uniqueId()}`}
             onClick={() => {
-              dispatch(erp.convert({ entity, id: currentErp._id }));
+              dispatch(erp.convert({ entity, id: currentErp._id as string }) as any);
             }}
             icon={<RetweetOutlined />}
             style={{ display: entity === 'quote' ? 'inline-block' : 'none' }}
@@ -189,7 +241,7 @@ export default function ReadItem({ config, selectedItem }) {
                 erp.currentAction({
                   actionType: 'update',
                   data: currentErp,
-                })
+                }) as any
               );
               navigate(`/${entity.toLowerCase()}/update/${currentErp._id}`);
             }}
