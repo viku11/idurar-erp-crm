@@ -8,7 +8,7 @@ import ResetPassword from '@/pages/ResetPassword';
 
 import { useDispatch } from 'react-redux';
 
-export default function AuthRouter() {
+export default function AuthRouter(): JSX.Element {
   const dispatch = useDispatch();
 
   return (
