@@ -1,6 +1,28 @@
 import * as actionTypes from './types';
+import type { ErpActionType } from './types';
 
-export const initialState = {
+interface PanelState {
+  isOpen: boolean;
+}
+
+type KeyState = 'create' | 'update' | 'read' | 'recordPayment' | 'deleteModal' | 'dataTableList';
+
+export interface ErpContextState {
+  create: PanelState;
+  update: PanelState;
+  read: PanelState;
+  recordPayment: PanelState;
+  deleteModal: PanelState;
+  dataTableList: PanelState;
+  last: string | null;
+}
+
+interface ErpAction {
+  type: ErpActionType;
+  keyState?: KeyState | null;
+}
+
+export const initialState: ErpContextState = {
   create: {
     isOpen: false,
   },
@@ -22,7 +44,7 @@ export const initialState = {
   last: null,
 };
 
-export function contextReducer(state, action) {
+export function contextReducer(state: ErpContextState, action: ErpAction): ErpContextState {
   const { keyState = null } = action;
   switch (action.type) {
     case actionTypes.OPEN_MODAL:
@@ -41,7 +63,7 @@ export function contextReducer(state, action) {
         dataTableList: {
           isOpen: false,
         },
-        [keyState]: { isOpen: true },
+        ...(keyState ? { [keyState]: { isOpen: true } } : {}),
       };
     case actionTypes.CLOSE_PANEL:
       return {
