@@ -2,11 +2,27 @@ import { notification } from 'antd';
 
 import codeMessage from './codeMessage';
 
-const successHandler = (response, options = { notifyOnSuccess: false, notifyOnFailed: true }) => {
+interface SuccessHandlerResponse {
+  status: number;
+  data: {
+    success: boolean;
+    message?: string;
+  };
+}
+
+interface SuccessHandlerOptions {
+  notifyOnSuccess: boolean;
+  notifyOnFailed: boolean;
+}
+
+const successHandler = (
+  response: SuccessHandlerResponse,
+  options: SuccessHandlerOptions = { notifyOnSuccess: false, notifyOnFailed: true }
+): void => {
   const { data } = response;
   if (data && data.success === true) {
-    const message = response.data && data.message;
-    const successText = message || codeMessage[response.status];
+    const message: string | undefined = response.data && data.message;
+    const successText: string = message || codeMessage[response.status];
 
     if (options.notifyOnSuccess) {
       notification.config({
@@ -19,8 +35,8 @@ const successHandler = (response, options = { notifyOnSuccess: false, notifyOnFa
       });
     }
   } else {
-    const message = response.data && data.message;
-    const errorText = message || codeMessage[response.status];
+    const message: string | undefined = response.data && data.message;
+    const errorText: string = message || codeMessage[response.status];
     const { status } = response;
     if (options.notifyOnFailed) {
       notification.config({
