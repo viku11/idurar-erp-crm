@@ -1,6 +1,6 @@
 import en_us from './en_us';
 
-const languages = {
+const languages: Record<string, Record<string, string>> = {
   en_us,
 };
 
