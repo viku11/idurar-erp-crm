@@ -1,4 +1,4 @@
-const lang = {
+const lang: Record<string, string> = {
   sign_up: 'Sign Up',
   manage_your_company_with: 'Manage Your Company With',
   all_in_one_tool: 'All In One Tool',
