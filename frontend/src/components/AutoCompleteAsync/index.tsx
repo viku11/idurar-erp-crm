@@ -8,6 +8,22 @@ import { useNavigate } from 'react-router-dom';
 import { Select, Empty } from 'antd';
 import useLanguage from '@/locale/useLanguage';
 
+interface OptionField {
+  [key: string]: string;
+}
+
+interface AutoCompleteAsyncProps {
+  entity: string;
+  displayLabels: string[];
+  searchFields: string;
+  outputValue?: string;
+  redirectLabel?: string;
+  withRedirect?: boolean;
+  urlToRedirect?: string;
+  value?: OptionField | string;
+  onChange?: (value: string) => void;
+}
+
 export default function AutoCompleteAsync({
   entity,
   displayLabels,
@@ -18,38 +34,38 @@ export default function AutoCompleteAsync({
   urlToRedirect = '/',
   value, /// this is for update
   onChange, /// this is for update
-}) {
+}: AutoCompleteAsyncProps) {
   const translate = useLanguage();
 
-  const addNewValue = { value: 'redirectURL', label: `+ ${translate(redirectLabel)}` };
+  const addNewValue: { value: string; label: string } = { value: 'redirectURL', label: `+ ${translate(redirectLabel)}` };
 
-  const [selectOptions, setOptions] = useState([]);
-  const [currentValue, setCurrentValue] = useState(undefined);
+  const [selectOptions, setOptions] = useState<(OptionField | string)[]>([]);
+  const [currentValue, setCurrentValue] = useState<string | undefined>(undefined);
 
-  const isUpdating = useRef(true);
-  const isSearching = useRef(false);
+  const isUpdating = useRef<boolean>(true);
+  const isSearching = useRef<boolean>(false);
 
-  const [searching, setSearching] = useState(false);
+  const [searching, setSearching] = useState<boolean>(false);
 
-  const [valToSearch, setValToSearch] = useState('');
-  const [debouncedValue, setDebouncedValue] = useState('');
+  const [valToSearch, setValToSearch] = useState<string>('');
+  const [debouncedValue, setDebouncedValue] = useState<string>('');
 
   const navigate = useNavigate();
 
-  const handleSelectChange = (newValue) => {
+  const handleSelectChange = (newValue: string | undefined): void => {
     isUpdating.current = false;
     // setCurrentValue(value[outputValue] || value); // set nested value or value
     // onChange(newValue[outputValue] || newValue);
     if (onChange) {
-      if (newValue) onChange(newValue[outputValue] || newValue);
+      if (newValue) onChange(newValue);
     }
     if (newValue === 'redirectURL' && withRedirect) {
       navigate(urlToRedirect);
     }
   };
 
-  const handleOnSelect = (value) => {
-    setCurrentValue(value[outputValue] || value); // set nested value or value
+  const handleOnSelect = (selectedValue: string): void => {
+    setCurrentValue(selectedValue); // set nested value or value
   };
 
   const [, cancel] = useDebounce(
@@ -61,14 +77,16 @@ export default function AutoCompleteAsync({
     [valToSearch]
   );
 
-  const asyncSearch = async (options) => {
+  const asyncSearch = async (options: { q: string; fields: string }): Promise<{ result: unknown; success: boolean }> => {
+    // @ts-ignore - request.search typing from external module
     return await request.search({ entity, options });
   };
 
-  let { onFetch, result, isSuccess, isLoading } = useOnFetch();
+  const { onFetch, result, isSuccess, isLoading } = useOnFetch<(OptionField | string)[]>();
 
-  const labels = (optionField) => {
-    return displayLabels.map((x) => optionField[x]).join(' ');
+  const labels = (optionField: OptionField | string): string => {
+    if (typeof optionField === 'string') return optionField;
+    return displayLabels.map((x: string) => optionField[x]).join(' ');
   };
 
   useEffect(() => {
@@ -77,6 +95,7 @@ export default function AutoCompleteAsync({
       fields: searchFields,
     };
     const callback = asyncSearch(options);
+    // @ts-ignore - onFetch expects matching generic but asyncSearch returns broader type
     onFetch(callback);
 
     return () => {
@@ -84,7 +103,7 @@ export default function AutoCompleteAsync({
     };
   }, [debouncedValue]);
 
-  const onSearch = (searchText) => {
+  const onSearch = (searchText: string): void => {
     isSearching.current = true;
     setSearching(true);
     // setOptions([]);
@@ -94,7 +113,7 @@ export default function AutoCompleteAsync({
 
   useEffect(() => {
     if (isSuccess) {
-      setOptions(result);
+      setOptions(result ?? []);
     } else {
       setSearching(false);
       // setCurrentValue(undefined);
@@ -105,11 +124,19 @@ export default function AutoCompleteAsync({
     // this for update Form , it's for setField
     if (value && isUpdating.current) {
       setOptions([value]);
-      setCurrentValue(value[outputValue] || value); // set nested value or value
-      onChange(value[outputValue] || value);
+      const resolvedValue: string = typeof value === 'string' ? value : (value[outputValue] || '');
+      setCurrentValue(resolvedValue);
+      if (onChange) {
+        onChange(resolvedValue);
+      }
       isUpdating.current = false;
     }
   }, [value]);
+
+  const getOptionKey = (optionField: OptionField | string): string => {
+    if (typeof optionField === 'string') return optionField;
+    return optionField[outputValue] || '';
+  };
 
   return (
     <Select
@@ -131,10 +158,10 @@ export default function AutoCompleteAsync({
       style={{ minWidth: '220px' }}
       // onSelect={handleOnSelect}
     >
-      {selectOptions.map((optionField) => (
+      {selectOptions.map((optionField: OptionField | string) => (
         <Select.Option
-          key={optionField[outputValue] || optionField}
-          value={optionField[outputValue] || optionField}
+          key={getOptionKey(optionField)}
+          value={getOptionKey(optionField)}
         >
           {labels(optionField)}
         </Select.Option>
