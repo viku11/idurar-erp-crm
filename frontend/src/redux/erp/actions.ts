@@ -17,7 +17,7 @@ interface SummaryOptions {
 }
 
 interface ResetActionParams {
-  actionType: string;
+  actionType: KeyState;
 }
 
 interface CurrentItemParams {
@@ -25,7 +25,7 @@ interface CurrentItemParams {
 }
 
 interface CurrentActionParams {
-  actionType: string;
+  actionType: KeyState;
   data: Record<string, unknown>;
 }
 
