@@ -1,6 +1,7 @@
 import * as actionTypes from './types';
 import * as authService from '@/auth';
 import { request } from '@/request';
+import { Dispatch } from 'redux';
 
 interface AuthResponseData {
   success: boolean;
@@ -15,12 +16,39 @@ interface AuthLocalState {
   isSuccess: boolean;
 }
 
-interface AuthAction {
-  type: string;
-  payload?: Record<string, unknown> | null;
+interface RequestLoadingAction {
+  type: typeof actionTypes.REQUEST_LOADING;
 }
 
-type AuthDispatch = (action: AuthAction) => void;
+interface RequestSuccessAction {
+  type: typeof actionTypes.REQUEST_SUCCESS;
+  payload: Record<string, unknown> | null;
+}
+
+interface RequestFailedAction {
+  type: typeof actionTypes.REQUEST_FAILED;
+}
+
+interface RegisterSuccessAction {
+  type: typeof actionTypes.REGISTER_SUCCESS;
+}
+
+interface LogoutSuccessAction {
+  type: typeof actionTypes.LOGOUT_SUCCESS;
+}
+
+interface LogoutFailedAction {
+  type: typeof actionTypes.LOGOUT_FAILED;
+  payload: Record<string, unknown> | null;
+}
+
+type AuthAction =
+  | RequestLoadingAction
+  | RequestSuccessAction
+  | RequestFailedAction
+  | RegisterSuccessAction
+  | LogoutSuccessAction
+  | LogoutFailedAction;
 
 interface LoginParams {
   loginData: { email: string; password: string };
@@ -46,11 +74,11 @@ interface UpdateProfileParams {
 
 export const login =
   ({ loginData }: LoginParams) =>
-  async (dispatch: AuthDispatch): Promise<void> => {
+  async (dispatch: Dispatch<AuthAction>): Promise<void> => {
     dispatch({
       type: actionTypes.REQUEST_LOADING,
     });
-    const data: AuthResponseData = await authService.login({ loginData }) as AuthResponseData;
+    const data = (await authService.login({ loginData })) as AuthResponseData;
 
     if (data.success === true) {
       const auth_state: AuthLocalState = {
@@ -74,11 +102,11 @@ export const login =
 
 export const register =
   ({ registerData }: RegisterParams) =>
-  async (dispatch: AuthDispatch): Promise<void> => {
+  async (dispatch: Dispatch<AuthAction>): Promise<void> => {
     dispatch({
       type: actionTypes.REQUEST_LOADING,
     });
-    const data: AuthResponseData = await authService.register({ registerData }) as AuthResponseData;
+    const data = (await authService.register({ registerData })) as AuthResponseData;
 
     if (data.success === true) {
       dispatch({
@@ -93,11 +121,11 @@ export const register =
 
 export const verify =
   ({ userId, emailToken }: VerifyParams) =>
-  async (dispatch: AuthDispatch): Promise<void> => {
+  async (dispatch: Dispatch<AuthAction>): Promise<void> => {
     dispatch({
       type: actionTypes.REQUEST_LOADING,
     });
-    const data: AuthResponseData = await authService.verify({ userId, emailToken }) as AuthResponseData;
+    const data = (await authService.verify({ userId, emailToken })) as AuthResponseData;
 
     if (data.success === true) {
       const auth_state: AuthLocalState = {
@@ -121,11 +149,11 @@ export const verify =
 
 export const resetPassword =
   ({ resetPasswordData }: ResetPasswordParams) =>
-  async (dispatch: AuthDispatch): Promise<void> => {
+  async (dispatch: Dispatch<AuthAction>): Promise<void> => {
     dispatch({
       type: actionTypes.REQUEST_LOADING,
     });
-    const data: AuthResponseData = await authService.resetPassword({ resetPasswordData }) as AuthResponseData;
+    const data = (await authService.resetPassword({ resetPasswordData })) as AuthResponseData;
 
     if (data.success === true) {
       const auth_state: AuthLocalState = {
@@ -147,7 +175,7 @@ export const resetPassword =
     }
   };
 
-export const logout = () => async (dispatch: AuthDispatch): Promise<void> => {
+export const logout = () => async (dispatch: Dispatch<AuthAction>): Promise<void> => {
   dispatch({
     type: actionTypes.LOGOUT_SUCCESS,
   });
@@ -158,10 +186,10 @@ export const logout = () => async (dispatch: AuthDispatch): Promise<void> => {
   window.localStorage.removeItem('auth');
   window.localStorage.removeItem('settings');
   window.localStorage.setItem('isLogout', JSON.stringify({ isLogout: true }));
-  const data: AuthResponseData = await authService.logout() as AuthResponseData;
+  const data = (await authService.logout()) as AuthResponseData;
   if (data.success === false) {
     const auth_state: AuthLocalState = {
-      current: tmpAuth as Record<string, unknown> | null,
+      current: tmpAuth as unknown as Record<string, unknown>,
       isLoggedIn: true,
       isLoading: false,
       isSuccess: true,
@@ -180,8 +208,8 @@ export const logout = () => async (dispatch: AuthDispatch): Promise<void> => {
 
 export const updateProfile =
   ({ entity, jsonData }: UpdateProfileParams) =>
-  async (dispatch: AuthDispatch): Promise<void> => {
-    const data: AuthResponseData = await request.updateAndUpload({ entity, id: '', jsonData }) as AuthResponseData;
+  async (dispatch: Dispatch<AuthAction>): Promise<void> => {
+    const data = (await request.updateAndUpload({ entity, id: '', jsonData })) as AuthResponseData;
 
     if (data.success === true) {
       dispatch({
