@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 
-import { Button, Row, Col, Descriptions, Tag, Divider } from 'antd';
+import { Button, Row, Col, Descriptions, Divider } from 'antd';
 import { PageHeader } from '@ant-design/pro-layout';
 import { FileTextOutlined, CloseCircleOutlined } from '@ant-design/icons';
 
+// @ts-ignore - shortid has no bundled type declarations
 import { generate as uniqueId } from 'shortid';
 
 import { useMoney } from '@/settings';
@@ -13,17 +14,57 @@ import useLanguage from '@/locale/useLanguage';
 
 import { useNavigate } from 'react-router-dom';
 
-export default function Payment({ config, currentItem }) {
+interface PaymentClient {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+interface PaymentItem {
+  _id: string;
+  itemName: string;
+  description: string;
+  quantity: number;
+  price: number;
+  total: number;
+}
+
+interface PaymentConfig {
+  entity: string;
+  ENTITY_NAME: string;
+}
+
+interface CurrentItemData {
+  _id: string;
+  number: number;
+  year: string;
+  paymentStatus: string;
+  subTotal: number;
+  total: number;
+  discount: number;
+  credit: number;
+  currency: string;
+  client: PaymentClient;
+  items: PaymentItem[];
+}
+
+interface PaymentProps {
+  config: PaymentConfig;
+  currentItem: CurrentItemData;
+}
+
+export default function Payment({ config, currentItem }: PaymentProps) {
   const translate = useLanguage();
   const { entity, ENTITY_NAME } = config;
 
   const money = useMoney();
   const navigate = useNavigate();
 
-  const [itemslist, setItemsList] = useState([]);
-  const [currentErp, setCurrentErp] = useState(currentItem);
+  const [itemslist, setItemsList] = useState<PaymentItem[]>([]);
+  const [currentErp, setCurrentErp] = useState<CurrentItemData>(currentItem);
 
-  const [client, setClient] = useState({});
+  const [client, setClient] = useState<Partial<PaymentClient>>({});
   useEffect(() => {
     if (currentErp?.client) {
       setClient(currentErp.client);
