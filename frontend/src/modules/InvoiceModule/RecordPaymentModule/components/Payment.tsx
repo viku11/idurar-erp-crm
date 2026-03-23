@@ -58,6 +58,7 @@ export default function Payment({ config, currentItem }: PaymentProps) {
   const translate = useLanguage();
   const { entity, ENTITY_NAME } = config;
 
+  // @ts-ignore - useMoney returns an untyped JS module
   const money = useMoney();
   const navigate = useNavigate();
 
