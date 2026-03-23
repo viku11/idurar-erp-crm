@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   SettingOutlined,
   CreditCardOutlined,
@@ -17,10 +18,17 @@ import MoneyFormatSettings from './MoneyFormatSettings';
 import useLanguage from '@/locale/useLanguage';
 import { useParams } from 'react-router-dom';
 
-export default function Settings() {
+interface ContentItem {
+  key: string;
+  label: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}
+
+export default function Settings(): React.ReactElement {
   const translate = useLanguage();
-  const { settingsKey } = useParams();
-  const content = [
+  const { settingsKey } = useParams<{ settingsKey: string }>();
+  const content: ContentItem[] = [
     {
       key: 'general_settings',
       label: translate('General Settings'),
@@ -53,7 +61,7 @@ export default function Settings() {
     },
   ];
 
-  const pageTitle = translate('Settings');
+  const pageTitle: string = translate('Settings');
 
-  return <TabsContent defaultActiveKey={settingsKey} content={content} pageTitle={pageTitle} />;
+  return <TabsContent defaultActiveKey={settingsKey ?? 'general_settings'} content={content} pageTitle={pageTitle} />;
 }
