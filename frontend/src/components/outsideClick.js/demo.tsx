@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import ReactDOM from 'react-dom';
 
-// @ts-ignore - Dropdown is an untyped JS module
-import Dropdown from './Dropdown';
+import Dropdown from '.';
 import './styles.css';
 
 function App(): JSX.Element {
-  const [vegetagle, setVegetable] = useState<string | undefined>(undefined);
-  const [fruit, setFruit] = useState<string | undefined>(undefined);
+  const [vegetagle, setVegetable] = useState<string>('');
+  const [fruit, setFruit] = useState<string>('');
 
   return (
     <div className="App">
