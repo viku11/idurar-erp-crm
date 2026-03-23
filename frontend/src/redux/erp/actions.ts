@@ -8,8 +8,16 @@ import type {
 
 // ---- Parameter interfaces for each action creator ----
 
+interface SearchOptions {
+  [key: string]: string;
+}
+
+interface SummaryOptions {
+  [key: string]: string;
+}
+
 interface ResetActionParams {
-  actionType: KeyState;
+  actionType: string;
 }
 
 interface CurrentItemParams {
@@ -17,7 +25,7 @@ interface CurrentItemParams {
 }
 
 interface CurrentActionParams {
-  actionType: KeyState;
+  actionType: string;
   data: Record<string, unknown>;
 }
 
@@ -33,6 +41,11 @@ interface ListParams {
 }
 
 interface CreateParams {
+  entity: string;
+  jsonData: Record<string, unknown>;
+}
+
+interface RecordPaymentParams {
   entity: string;
   jsonData: Record<string, unknown>;
 }
@@ -55,12 +68,12 @@ interface DeleteParams {
 
 interface SearchParams {
   entity: string;
-  options: Record<string, string>;
+  options?: SearchOptions;
 }
 
 interface SummaryParams {
   entity: string;
-  options: Record<string, string>;
+  options?: SummaryOptions;
 }
 
 interface MailParams {
@@ -191,7 +204,7 @@ export const erp = {
         });
         dispatch({
           type: actionTypes.CURRENT_ITEM,
-          payload: data.result,
+          payload: data.result as Record<string, unknown>,
         });
       } else {
         dispatch({
@@ -202,7 +215,7 @@ export const erp = {
       }
     },
   recordPayment:
-    ({ entity, jsonData }: CreateParams) =>
+    ({ entity, jsonData }: RecordPaymentParams) =>
     async (dispatch: Dispatch): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
@@ -220,7 +233,7 @@ export const erp = {
         });
         dispatch({
           type: actionTypes.CURRENT_ITEM,
-          payload: (data.result as RecordPaymentResult).invoice,
+          payload: (data.result as Record<string, unknown>).invoice as Record<string, unknown>,
         });
       } else {
         dispatch({
@@ -244,7 +257,7 @@ export const erp = {
       if (data.success === true) {
         dispatch({
           type: actionTypes.CURRENT_ITEM,
-          payload: data.result,
+          payload: data.result as Record<string, unknown>,
         });
         dispatch({
           type: actionTypes.REQUEST_SUCCESS,
@@ -278,7 +291,7 @@ export const erp = {
         });
         dispatch({
           type: actionTypes.CURRENT_ITEM,
-          payload: data.result,
+          payload: data.result as Record<string, unknown>,
         });
       } else {
         dispatch({
@@ -321,7 +334,7 @@ export const erp = {
     },
 
   search:
-    ({ entity, options }: SearchParams) =>
+    ({ entity, options = {} }: SearchParams) =>
     async (dispatch: Dispatch): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
@@ -347,7 +360,7 @@ export const erp = {
     },
 
   summary:
-    ({ entity, options }: SummaryParams) =>
+    ({ entity, options = {} }: SummaryParams) =>
     async (dispatch: Dispatch): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
