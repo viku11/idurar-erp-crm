@@ -1,10 +1,23 @@
 import useLanguage from '@/locale/useLanguage';
 import RecordPaymentModule from '@/modules/InvoiceModule/RecordPaymentModule';
 
-export default function InvoiceRecord() {
-  const entity = 'invoice';
+interface Labels {
+  PANEL_TITLE: string;
+  DATATABLE_TITLE: string;
+  ADD_NEW_ENTITY: string;
+  ENTITY_NAME: string;
+  RECORD_ENTITY: string;
+  [key: string]: unknown;
+}
+
+interface ConfigPage extends Labels {
+  entity: string;
+}
+
+export default function InvoiceRecord(): JSX.Element {
+  const entity: string = 'invoice';
   const translate = useLanguage();
-  const Labels = {
+  const Labels: Labels = {
     PANEL_TITLE: translate('invoice'),
     DATATABLE_TITLE: translate('invoice_list'),
     ADD_NEW_ENTITY: translate('add_new_invoice'),
@@ -13,7 +26,7 @@ export default function InvoiceRecord() {
     RECORD_ENTITY: translate('record_payment'),
   };
 
-  const configPage = {
+  const configPage: ConfigPage = {
     entity,
     ...Labels,
   };
