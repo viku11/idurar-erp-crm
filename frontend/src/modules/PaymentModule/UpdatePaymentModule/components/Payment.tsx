@@ -1,34 +1,80 @@
 import { useState, useEffect } from 'react';
 
-import { Button, Row, Col, Descriptions, Tag, Divider } from 'antd';
+import { Button, Row, Col, Descriptions, Divider } from 'antd';
 import { PageHeader } from '@ant-design/pro-layout';
 import { FileTextOutlined, CloseCircleOutlined } from '@ant-design/icons';
+// @ts-ignore — shortid has no bundled type declarations
 import { generate as uniqueId } from 'shortid';
-import { useMoney, useDate } from '@/settings';
+import { useMoney } from '@/settings';
 import { useNavigate } from 'react-router-dom';
 import useLanguage from '@/locale/useLanguage';
 import UpdatePayment from './UpdatePayment';
+// @ts-ignore — tagColor import may lack type declarations
 import { tagColor } from '@/utils/statusTagColor';
 
-export default function Payment({ config, currentItem }) {
+interface PaymentClient {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  [key: string]: unknown;
+}
+
+interface CurrentItemInvoice {
+  _id: string;
+  [key: string]: unknown;
+}
+
+interface CurrentItem {
+  _id: string;
+  invoice?: CurrentItemInvoice;
+  [key: string]: unknown;
+}
+
+interface CurrentErpData {
+  _id: string;
+  number: string | number;
+  year: string | number;
+  paymentStatus: string;
+  subTotal: number;
+  total: number;
+  discount: number;
+  credit: number;
+  currency: string;
+  amount: number;
+  client: PaymentClient;
+  [key: string]: unknown;
+}
+
+interface PaymentConfig {
+  entity: string;
+  ENTITY_NAME: string;
+}
+
+interface PaymentProps {
+  config: PaymentConfig;
+  currentItem: CurrentItem;
+}
+
+export default function Payment({ config, currentItem }: PaymentProps): React.JSX.Element {
   const translate = useLanguage();
   const { entity, ENTITY_NAME } = config;
 
   const money = useMoney();
   const navigate = useNavigate();
 
-  const [currentErp, setCurrentErp] = useState(currentItem);
+  const [currentErp, setCurrentErp] = useState<CurrentErpData>({} as CurrentErpData);
 
   useEffect(() => {
     const controller = new AbortController();
     if (currentItem) {
       const { invoice, _id, ...others } = currentItem;
-      setCurrentErp({ ...others, ...invoice, _id });
+      setCurrentErp({ ...others, ...invoice, _id } as CurrentErpData);
     }
     return () => controller.abort();
   }, [currentItem]);
 
-  const [client, setClient] = useState({});
+  const [client, setClient] = useState<PaymentClient>({} as PaymentClient);
 
   useEffect(() => {
     if (currentErp?.client) {
