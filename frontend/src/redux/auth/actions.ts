@@ -1,6 +1,13 @@
 import * as actionTypes from './types';
 import * as authService from '@/auth';
 import { request } from '@/request';
+import { Dispatch } from 'redux';
+
+interface AuthResponseData {
+  success: boolean;
+  result: Record<string, unknown> | null;
+  message?: string;
+}
 
 interface AuthState {
   current: Record<string, unknown> | null;
@@ -9,11 +16,39 @@ interface AuthState {
   isSuccess: boolean;
 }
 
-interface AuthResponseData {
-  success: boolean;
-  result: Record<string, unknown> | null;
-  message?: string;
+interface RequestLoadingAction {
+  type: typeof actionTypes.REQUEST_LOADING;
 }
+
+interface RequestFailedAction {
+  type: typeof actionTypes.REQUEST_FAILED;
+}
+
+interface RequestSuccessAction {
+  type: typeof actionTypes.REQUEST_SUCCESS;
+  payload: Record<string, unknown>;
+}
+
+interface RegisterSuccessAction {
+  type: typeof actionTypes.REGISTER_SUCCESS;
+}
+
+interface LogoutSuccessAction {
+  type: typeof actionTypes.LOGOUT_SUCCESS;
+}
+
+interface LogoutFailedAction {
+  type: typeof actionTypes.LOGOUT_FAILED;
+  payload: Record<string, unknown>;
+}
+
+type AuthAction =
+  | RequestLoadingAction
+  | RequestFailedAction
+  | RequestSuccessAction
+  | RegisterSuccessAction
+  | LogoutSuccessAction
+  | LogoutFailedAction;
 
 interface LoginParams {
   loginData: {
@@ -48,16 +83,9 @@ interface UpdateProfileParams {
   jsonData: FormData;
 }
 
-interface AuthAction {
-  type: string;
-  payload?: Record<string, unknown> | null;
-}
-
-type Dispatch = (action: AuthAction) => void;
-
 export const login =
   ({ loginData }: LoginParams) =>
-  async (dispatch: Dispatch): Promise<void> => {
+  async (dispatch: Dispatch<AuthAction>): Promise<void> => {
     dispatch({
       type: actionTypes.REQUEST_LOADING,
     });
@@ -74,7 +102,7 @@ export const login =
       window.localStorage.removeItem('isLogout');
       dispatch({
         type: actionTypes.REQUEST_SUCCESS,
-        payload: data.result,
+        payload: data.result as Record<string, unknown>,
       });
     } else {
       dispatch({
@@ -85,7 +113,7 @@ export const login =
 
 export const register =
   ({ registerData }: RegisterParams) =>
-  async (dispatch: Dispatch): Promise<void> => {
+  async (dispatch: Dispatch<AuthAction>): Promise<void> => {
     dispatch({
       type: actionTypes.REQUEST_LOADING,
     });
@@ -104,7 +132,7 @@ export const register =
 
 export const verify =
   ({ userId, emailToken }: VerifyParams) =>
-  async (dispatch: Dispatch): Promise<void> => {
+  async (dispatch: Dispatch<AuthAction>): Promise<void> => {
     dispatch({
       type: actionTypes.REQUEST_LOADING,
     });
@@ -121,7 +149,7 @@ export const verify =
       window.localStorage.removeItem('isLogout');
       dispatch({
         type: actionTypes.REQUEST_SUCCESS,
-        payload: data.result,
+        payload: data.result as Record<string, unknown>,
       });
     } else {
       dispatch({
@@ -132,7 +160,7 @@ export const verify =
 
 export const resetPassword =
   ({ resetPasswordData }: ResetPasswordParams) =>
-  async (dispatch: Dispatch): Promise<void> => {
+  async (dispatch: Dispatch<AuthAction>): Promise<void> => {
     dispatch({
       type: actionTypes.REQUEST_LOADING,
     });
@@ -149,7 +177,7 @@ export const resetPassword =
       window.localStorage.removeItem('isLogout');
       dispatch({
         type: actionTypes.REQUEST_SUCCESS,
-        payload: data.result,
+        payload: data.result as Record<string, unknown>,
       });
     } else {
       dispatch({
@@ -158,16 +186,14 @@ export const resetPassword =
     }
   };
 
-export const logout = () => async (dispatch: Dispatch): Promise<void> => {
+export const logout = () => async (dispatch: Dispatch<AuthAction>): Promise<void> => {
   dispatch({
     type: actionTypes.LOGOUT_SUCCESS,
   });
   const result: string | null = window.localStorage.getItem('auth');
-  const tmpAuth: AuthState | null = result ? (JSON.parse(result) as AuthState) : null;
+  const tmpAuth: AuthState | null = result ? JSON.parse(result) as AuthState : null;
   const settings: string | null = window.localStorage.getItem('settings');
-  const tmpSettings: Record<string, unknown> | null = settings
-    ? (JSON.parse(settings) as Record<string, unknown>)
-    : null;
+  const tmpSettings: Record<string, unknown> | null = settings ? JSON.parse(settings) as Record<string, unknown> : null;
   window.localStorage.removeItem('auth');
   window.localStorage.removeItem('settings');
   window.localStorage.setItem('isLogout', JSON.stringify({ isLogout: true }));
@@ -184,7 +210,7 @@ export const logout = () => async (dispatch: Dispatch): Promise<void> => {
     window.localStorage.removeItem('isLogout');
     dispatch({
       type: actionTypes.LOGOUT_FAILED,
-      payload: data.result,
+      payload: data.result as Record<string, unknown>,
     });
   } else {
     // on logout success
@@ -193,13 +219,13 @@ export const logout = () => async (dispatch: Dispatch): Promise<void> => {
 
 export const updateProfile =
   ({ entity, jsonData }: UpdateProfileParams) =>
-  async (dispatch: Dispatch): Promise<void> => {
+  async (dispatch: Dispatch<AuthAction>): Promise<void> => {
     const data = (await request.updateAndUpload({ entity, id: '', jsonData })) as AuthResponseData;
 
     if (data.success === true) {
       dispatch({
         type: actionTypes.REQUEST_SUCCESS,
-        payload: data.result,
+        payload: data.result as Record<string, unknown>,
       });
       const auth_state: AuthState = {
         current: data.result,
