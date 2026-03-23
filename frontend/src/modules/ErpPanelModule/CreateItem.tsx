@@ -133,7 +133,7 @@ export default function CreateItem({ config, CreateForm }: CreateItemProps) {
       if (fieldsValue.items) {
         let newList = [...fieldsValue.items];
         newList.map((item) => {
-          item.total = calculate.multiply(item.quantity, item.price);
+          item.total = calculate.multiply(item.quantity!, item.price!);
         });
         fieldsValue = {
           ...fieldsValue,

@@ -81,7 +81,7 @@ export default function Search({ config }: SearchProps) {
       return item[outputValue] === data;
     });
 
-    dispatch(erp.currentItem({ data: currentItem }) as never);
+    dispatch(erp.currentItem({ data: currentItem ?? {} as Record<string, unknown> }) as never);
     panel.open();
     collapsedBox.open();
     readBox.open();

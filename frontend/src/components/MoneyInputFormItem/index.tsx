@@ -27,7 +27,7 @@ export default function MoneyInputFormItem({
         controls={false}
         addonAfter={currency_position === 'after' ? currency_symbol : undefined}
         addonBefore={currency_position === 'before' ? currency_symbol : undefined}
-        formatter={(value) => amountFormatter({ amount: value, currency_code })}
+        formatter={(value) => amountFormatter({ amount: value ?? 0, currency_code })}
       />
     </Form.Item>
   );

@@ -32,7 +32,7 @@ const DefaultApp = (): ReactElement => (
 );
 
 export default function IdurarOs(): ReactElement {
-  const { isLoggedIn } = useSelector<RootState, AuthState>(selectAuth);
+  const { isLoggedIn } = useSelector<RootState, AuthState>((state) => selectAuth(state as any));
 
   console.log(
     '🚀 Welcome to IDURAR ERP CRM! Did you know that we also offer commercial customization services? Contact us at hello@idurarapp.com for more information.'

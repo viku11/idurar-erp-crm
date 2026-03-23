@@ -99,7 +99,7 @@ export default function DeleteModal({ config }: DeleteModalProps): JSX.Element {
   }, [isSuccess, current]);
 
   const handleOk = (): void => {
-    const id = (current as Record<string, unknown>)._id;
+    const id = (current as Record<string, unknown>)._id as string;
     dispatch(crud.delete({ entity, id }));
     readBox.close();
     modal.close();

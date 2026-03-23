@@ -161,7 +161,7 @@ export default function ReadItem({ config, selectedItem }: ReadItemProps) {
               dispatch(
                 erp.currentAction({
                   actionType: 'update',
-                  data: currentErp,
+                  data: currentErp as any,
                 }) as any
               );
               navigate(`/${entity.toLowerCase()}/update/${currentErp._id}`);

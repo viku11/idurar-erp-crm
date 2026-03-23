@@ -102,11 +102,11 @@ function SidePanelTopContent({ config, formElements, withUpload }: SidePanelTopC
   }, [currentItem]);
 
   const removeItem = (): void => {
-    dispatch(crud.currentAction({ actionType: 'delete', data: currentItem }) as never);
+    dispatch(crud.currentAction({ actionType: 'delete', data: currentItem ?? {} as Record<string, unknown> }) as never);
     modal.open();
   };
   const editItem = (): void => {
-    dispatch(crud.currentAction({ actionType: 'update', data: currentItem }) as never);
+    dispatch(crud.currentAction({ actionType: 'update', data: currentItem ?? {} as Record<string, unknown> }) as never);
     editBox.open();
   };
 

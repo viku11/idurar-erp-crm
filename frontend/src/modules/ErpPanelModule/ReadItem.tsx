@@ -231,7 +231,7 @@ export default function ReadItem({ config, selectedItem }: ReadItemProps) {
           <Button
             key={`${uniqueId()}`}
             onClick={() => {
-              dispatch(erp.convert({ entity, id: currentErp._id }) as any);
+              dispatch(erp.convert({ entity, id: currentErp._id! }) as any);
             }}
             icon={<RetweetOutlined />}
             style={{ display: entity === 'quote' ? 'inline-block' : 'none' }}

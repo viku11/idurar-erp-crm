@@ -113,7 +113,7 @@ function SearchItemComponent({ config, onRerender }: SearchItemComponentProps): 
       return item[outputValue] === data;
     });
 
-    dispatch(crud.currentItem({ data: currentItem }) as never);
+    dispatch(crud.currentItem({ data: currentItem ?? {} as Record<string, unknown> }) as never);
 
     panel.open();
     collapsedBox.open();

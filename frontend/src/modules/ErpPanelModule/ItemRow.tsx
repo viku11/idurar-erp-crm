@@ -128,7 +128,7 @@ export default function ItemRow({ field, remove, current = null }: ItemRowProps)
               addonBefore={money.currency_position === 'before' ? money.currency_symbol : undefined}
               formatter={(value: number | string | undefined) => {
                 const numValue = typeof value === 'string' ? parseFloat(value) : value;
-                return money.amountFormatter({ amount: numValue, currency_code: money.currency_code });
+                return money.amountFormatter({ amount: numValue ?? 0, currency_code: money.currency_code });
               }}
             />
           </Form.Item>

@@ -24,7 +24,7 @@ const ForgetPassword: React.FC = () => {
   const { onFetch, isSuccess, isLoading } = useOnFetch();
 
   async function postData(data: ForgetPasswordFormValues) {
-    return await request.post({ entity: 'forgetpassword', jsonData: data });
+    return await request.post({ entity: 'forgetpassword', jsonData: data as unknown as Record<string, unknown> });
   }
 
   const onFinish = (values: ForgetPasswordFormValues): void => {

@@ -37,7 +37,7 @@ interface DropdownMenuProps {
 
 export default function HeaderContent(): React.ReactElement {
   const currentAdmin: Admin | undefined = useSelector(
-    (state: RootState) => selectCurrentAdmin(state) as Admin | undefined
+    (state: RootState) => selectCurrentAdmin(state as any) as Admin | undefined
   );
   const { Header } = Layout;
 

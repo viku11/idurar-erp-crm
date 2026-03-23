@@ -38,7 +38,7 @@ export default function ReadInvoiceModule({ config }: ReadInvoiceModuleProps) {
   const { id } = useParams<{ id: string }>();
 
   useLayoutEffect(() => {
-    dispatch(erp.read({ entity: config.entity, id }));
+    dispatch(erp.read({ entity: config.entity, id: id! }));
   }, [id]);
 
   const { result: currentResult, isSuccess, isLoading = true } = useSelector(selectReadItem) as ReadItemState;
@@ -53,7 +53,7 @@ export default function ReadInvoiceModule({ config }: ReadInvoiceModuleProps) {
     return (
       <ErpLayout>
         {isSuccess ? (
-          <ReadItem config={config} selectedItem={currentResult} />
+          <ReadItem config={config} selectedItem={currentResult as any} />
         ) : (
           <NotFound entity={config.entity} />
         )}
