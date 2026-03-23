@@ -1,15 +1,122 @@
 import * as actionTypes from './types';
 import { request } from '@/request';
 
+import type { Dispatch } from 'redux';
+import type {
+  KeyState,
+  ErpAction,
+  ErpItem,
+} from './types';
+
+// ---- API response shapes (derived from request module & reducer usage) ----
+
+interface ApiPagination {
+  page: string;
+  count: string;
+}
+
+interface ListApiResponse {
+  success: boolean;
+  result: ErpItem[];
+  pagination: ApiPagination;
+}
+
+interface CrudApiResponse {
+  success: boolean;
+  result: unknown;
+}
+
+interface RecordPaymentResult {
+  invoice: unknown;
+  [key: string]: unknown;
+}
+
+interface RecordPaymentApiResponse {
+  success: boolean;
+  result: RecordPaymentResult;
+}
+
+// ---- Parameter interfaces ----
+
+interface ResetActionParams {
+  actionType: KeyState;
+}
+
+interface CurrentItemParams {
+  data: Record<string, unknown>;
+}
+
+interface CurrentActionParams {
+  actionType: KeyState;
+  data: Record<string, unknown>;
+}
+
+interface ListOptions {
+  page?: number;
+  items?: number;
+  [key: string]: unknown;
+}
+
+interface ListParams {
+  entity: string;
+  options?: ListOptions;
+}
+
+interface CreateParams {
+  entity: string;
+  jsonData: Record<string, unknown>;
+}
+
+interface ReadParams {
+  entity: string;
+  id: string;
+}
+
+interface UpdateParams {
+  entity: string;
+  id: string;
+  jsonData: Record<string, unknown>;
+}
+
+interface DeleteParams {
+  entity: string;
+  id: string;
+}
+
+interface SearchParams {
+  entity: string;
+  options: Record<string, string>;
+}
+
+interface SummaryParams {
+  entity: string;
+  options: Record<string, string>;
+}
+
+interface MailParams {
+  entity: string;
+  jsonData: Record<string, unknown>;
+}
+
+interface ConvertParams {
+  entity: string;
+  id: string;
+}
+
+// ---- Thunk action type ----
+type ThunkAction = (dispatch: Dispatch<ErpAction>) => void | Promise<void>;
+
 export const erp = {
-  resetState: () => (dispatch) => {
-    dispatch({
-      type: actionTypes.RESET_STATE,
-    });
-  },
+  resetState:
+    (): ThunkAction =>
+    (dispatch: Dispatch<ErpAction>): void => {
+      dispatch({
+        type: actionTypes.RESET_STATE,
+      });
+    },
   resetAction:
-    ({ actionType }) =>
-    (dispatch) => {
+    ({ actionType }: ResetActionParams): ThunkAction =>
+    (dispatch: Dispatch<ErpAction>): void => {
       dispatch({
         type: actionTypes.RESET_ACTION,
         keyState: actionType,
@@ -17,16 +124,16 @@ export const erp = {
       });
     },
   currentItem:
-    ({ data }) =>
-    (dispatch) => {
+    ({ data }: CurrentItemParams): ThunkAction =>
+    (dispatch: Dispatch<ErpAction>): void => {
       dispatch({
         type: actionTypes.CURRENT_ITEM,
         payload: { ...data },
       });
     },
   currentAction:
-    ({ actionType, data }) =>
-    (dispatch) => {
+    ({ actionType, data }: CurrentActionParams): ThunkAction =>
+    (dispatch: Dispatch<ErpAction>): void => {
       dispatch({
         type: actionTypes.CURRENT_ACTION,
         keyState: actionType,
@@ -34,15 +141,15 @@ export const erp = {
       });
     },
   list:
-    ({ entity, options = { page: 1, items: 10 } }) =>
-    async (dispatch) => {
+    ({ entity, options = { page: 1, items: 10 } }: ListParams): ThunkAction =>
+    async (dispatch: Dispatch<ErpAction>): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
         keyState: 'list',
         payload: null,
       });
 
-      let data = await request.list({ entity, options });
+      const data: ListApiResponse = await request.list({ entity, options: options as Record<string, string> });
 
       if (data.success === true) {
         const result = {
@@ -67,15 +174,15 @@ export const erp = {
       }
     },
   create:
-    ({ entity, jsonData }) =>
-    async (dispatch) => {
+    ({ entity, jsonData }: CreateParams): ThunkAction =>
+    async (dispatch: Dispatch<ErpAction>): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
         keyState: 'create',
         payload: null,
       });
 
-      let data = await request.create({ entity, jsonData });
+      const data: CrudApiResponse = await request.create({ entity, jsonData });
 
       if (data.success === true) {
         dispatch({
@@ -96,15 +203,15 @@ export const erp = {
       }
     },
   recordPayment:
-    ({ entity, jsonData }) =>
-    async (dispatch) => {
+    ({ entity, jsonData }: CreateParams): ThunkAction =>
+    async (dispatch: Dispatch<ErpAction>): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
         keyState: 'recordPayment',
         payload: null,
       });
 
-      let data = await request.create({ entity, jsonData });
+      const data: RecordPaymentApiResponse = await request.create({ entity, jsonData });
 
       if (data.success === true) {
         dispatch({
@@ -125,15 +232,15 @@ export const erp = {
       }
     },
   read:
-    ({ entity, id }) =>
-    async (dispatch) => {
+    ({ entity, id }: ReadParams): ThunkAction =>
+    async (dispatch: Dispatch<ErpAction>): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
         keyState: 'read',
         payload: null,
       });
 
-      let data = await request.read({ entity, id });
+      const data: CrudApiResponse = await request.read({ entity, id });
 
       if (data.success === true) {
         dispatch({
@@ -154,15 +261,15 @@ export const erp = {
       }
     },
   update:
-    ({ entity, id, jsonData }) =>
-    async (dispatch) => {
+    ({ entity, id, jsonData }: UpdateParams): ThunkAction =>
+    async (dispatch: Dispatch<ErpAction>): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
         keyState: 'update',
         payload: null,
       });
 
-      let data = await request.update({ entity, id, jsonData });
+      const data: CrudApiResponse = await request.update({ entity, id, jsonData });
 
       if (data.success === true) {
         dispatch({
@@ -184,11 +291,12 @@ export const erp = {
     },
 
   delete:
-    ({ entity, id }) =>
-    async (dispatch) => {
+    ({ entity, id }: DeleteParams): ThunkAction =>
+    async (dispatch: Dispatch<ErpAction>): Promise<void> => {
       dispatch({
         type: actionTypes.RESET_ACTION,
         keyState: 'delete',
+        payload: null,
       });
       dispatch({
         type: actionTypes.REQUEST_LOADING,
@@ -196,7 +304,7 @@ export const erp = {
         payload: null,
       });
 
-      let data = await request.delete({ entity, id });
+      const data: CrudApiResponse = await request.delete({ entity, id });
 
       if (data.success === true) {
         dispatch({
@@ -214,15 +322,15 @@ export const erp = {
     },
 
   search:
-    ({ entity, options }) =>
-    async (dispatch) => {
+    ({ entity, options }: SearchParams): ThunkAction =>
+    async (dispatch: Dispatch<ErpAction>): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
         keyState: 'search',
         payload: null,
       });
 
-      let data = await request.search({ entity, options });
+      const data: CrudApiResponse = await request.search({ entity, options });
 
       if (data.success === true) {
         dispatch({
@@ -240,15 +348,15 @@ export const erp = {
     },
 
   summary:
-    ({ entity, options }) =>
-    async (dispatch) => {
+    ({ entity, options }: SummaryParams): ThunkAction =>
+    async (dispatch: Dispatch<ErpAction>): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
         keyState: 'summary',
         payload: null,
       });
 
-      const data = await request.summary({ entity, options });
+      const data: CrudApiResponse = await request.summary({ entity, options });
 
       if (data.success === true) {
         dispatch({
@@ -266,15 +374,15 @@ export const erp = {
     },
 
   mail:
-    ({ entity, jsonData }) =>
-    async (dispatch) => {
+    ({ entity, jsonData }: MailParams): ThunkAction =>
+    async (dispatch: Dispatch<ErpAction>): Promise<void> => {
       dispatch({
         type: actionTypes.REQUEST_LOADING,
         keyState: 'mail',
         payload: null,
       });
 
-      const data = await request.mail({ entity, jsonData });
+      const data: CrudApiResponse = await request.mail({ entity, jsonData });
 
       if (data.success === true) {
         dispatch({
@@ -292,8 +400,8 @@ export const erp = {
     },
 
   convert:
-    ({ entity, id }) =>
-    async () => {
+    ({ entity, id }: ConvertParams): ThunkAction =>
+    async (): Promise<void> => {
       await request.convert({ entity, id });
     },
 };
