@@ -11,7 +11,7 @@ interface QuoteDataTableModuleProps {
 export default function QuoteDataTableModule({ config, extra = [] }: QuoteDataTableModuleProps) {
   return (
     <ErpLayout>
-      <ErpPanel config={config} extra={extra}></ErpPanel>
+      <ErpPanel config={config as any} extra={extra as any}></ErpPanel>
     </ErpLayout>
   );
 }

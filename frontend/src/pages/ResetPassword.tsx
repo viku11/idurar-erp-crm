@@ -50,9 +50,9 @@ const ResetPassword: React.FC = () => {
       resetPassword({
         resetPasswordData: {
           password: values.password,
-          userId,
+          userId: userId as string,
           resetToken,
-        },
+        } as any,
       })
     );
   };

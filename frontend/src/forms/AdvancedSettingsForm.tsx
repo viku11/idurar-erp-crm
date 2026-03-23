@@ -80,7 +80,7 @@ export function SelectType(): JSX.Element {
 
 export default function AdvancedSettingsForm({ isUpdateForm = false }: AdvancedSettingsFormProps): JSX.Element {
   const translate = useLanguage();
-  const { result } = useSelector((state: RootState) => selectCurrentItem(state));
+  const { result } = useSelector((state: RootState) => selectCurrentItem(state as any));
   const [type, setType] = useState<SettingType | null>(null);
   const options = ['number', 'text', 'date'];
 

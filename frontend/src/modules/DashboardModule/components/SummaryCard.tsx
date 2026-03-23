@@ -89,11 +89,11 @@ export default function AnalyticSummaryCard({ title, tagColor, data, prefix, isL
                     {data
                       ? moneyFormatter({
                           amount: data,
-                          currency_code: money_format_settings?.default_currency_code,
+                          currency_code: money_format_settings?.default_currency_code as string | undefined,
                         })
                       : moneyFormatter({
                           amount: 0,
-                          currency_code: money_format_settings?.default_currency_code,
+                          currency_code: money_format_settings?.default_currency_code as string | undefined,
                         })}
                   </Tag>
                 </Tooltip>

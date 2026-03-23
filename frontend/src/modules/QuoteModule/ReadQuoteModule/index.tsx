@@ -65,7 +65,7 @@ export default function ReadQuoteModule({ config }: ReadQuoteModuleProps) {
   const { id } = useParams();
 
   useLayoutEffect(() => {
-    dispatch(erp.read({ entity: config.entity, id }) as unknown as Parameters<typeof dispatch>[0]);
+    dispatch(erp.read({ entity: config.entity, id: id! }) as unknown as Parameters<typeof dispatch>[0]);
   }, [id]);
 
   const { result: currentResult, isSuccess, isLoading = true } = useSelector(selectReadItem) as ReadItemState;
@@ -80,7 +80,7 @@ export default function ReadQuoteModule({ config }: ReadQuoteModuleProps) {
     return (
       <ErpLayout>
         {isSuccess ? (
-          <ReadItem config={config} selectedItem={currentResult ?? undefined} />
+          <ReadItem config={config} selectedItem={(currentResult ?? undefined) as any} />
         ) : (
           <NotFound entity={config.entity} />
         )}

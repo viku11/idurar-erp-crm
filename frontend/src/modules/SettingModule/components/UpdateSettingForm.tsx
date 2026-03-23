@@ -33,7 +33,7 @@ interface FieldsValue extends Record<string, unknown> {
 export default function UpdateSettingForm({ config, children, withUpload, uploadSettingKey }: UpdateSettingFormProps) {
   const { entity, settingsCategory } = config;
   const dispatch = useDispatch();
-  const { result, isLoading } = useSelector(selectSettings) as SettingsState;
+  const { result, isLoading } = useSelector(selectSettings) as unknown as SettingsState;
   const translate = useLanguage();
   const [form] = Form.useForm();
 
@@ -49,7 +49,7 @@ export default function UpdateSettingForm({ config, children, withUpload, upload
         return;
       } 
       dispatch(
-        settingsAction.upload({ entity, settingKey: uploadSettingKey, jsonData: fieldsValue }) as never
+        settingsAction.upload({ entity, settingKey: uploadSettingKey!, jsonData: fieldsValue as any }) as never
       );
     } else {
       const settings: Array<{ settingKey: string; settingValue: unknown }> = [];

@@ -48,14 +48,14 @@ export default function ReadItem({ config }: ReadItemProps): JSX.Element {
   const { isReadBoxOpen } = state;
   const [listState, setListState] = useState<ListItem[]>([]);
 
-  if (fields) readColumns = [...dataForRead({ fields: fields, translate: translate })] as ReadColumn[];
+  if (fields) readColumns = [...dataForRead({ fields: fields as any, translate: translate })] as ReadColumn[];
   useEffect(() => {
     const list: ListItem[] = [];
     (readColumns as ReadColumn[]).map((props: ReadColumn) => {
       const propsKey = props.dataIndex;
       const propsTitle = props.title;
       const isDate = props.isDate || false;
-      let value: string = valueByString(currentResult, propsKey) as string;
+      let value: string = valueByString(currentResult ?? {}, propsKey) as string;
       value = isDate ? dayjs(value).format(dateFormat) : value;
       list.push({ propsKey, label: propsTitle, value: value });
     });

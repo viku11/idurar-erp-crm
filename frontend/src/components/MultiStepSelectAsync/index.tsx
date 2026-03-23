@@ -40,7 +40,7 @@ const asyncList = (entity: string): Promise<ApiResponse> => {
 };
 
 const asyncFilter = (entity: string, options: { filter: string; equal: unknown }): Promise<ApiResponse> => {
-  return request.filter({ entity, options });
+  return request.filter({ entity, options: options as any });
 };
 
 const MultiStepSelectAsync = ({
@@ -81,7 +81,7 @@ const MultiStepSelectAsync = ({
         const data = await asyncList(entityName);
         setFirstSelectOptions(data.result);
       } catch (error) {
-        errorHandler(error);
+        errorHandler(error as any);
       } finally {
         setLoading(false);
       }
