@@ -15,20 +15,31 @@ import { useParams } from 'react-router-dom';
 
 import { settingsAction } from '@/redux/settings/actions';
 
-export default function UpdateInvoiceModule({ config }) {
+interface UpdateInvoiceConfig {
+  entity: string;
+  [key: string]: unknown;
+}
+
+interface UpdateInvoiceModuleProps {
+  config: UpdateInvoiceConfig;
+}
+
+export default function UpdateInvoiceModule({ config }: UpdateInvoiceModuleProps) {
   const dispatch = useDispatch();
 
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
 
   useLayoutEffect(() => {
-    dispatch(erp.read({ entity: config.entity, id }));
+    // @ts-ignore - erp.read returns a thunk action
+    dispatch(erp.read({ entity: config.entity, id: id as string }));
   }, [id]);
 
   const { result: currentResult, isSuccess, isLoading = true } = useSelector(selectReadItem);
 
   useLayoutEffect(() => {
     if (currentResult) {
-      const data = { ...currentResult };
+      const data: Record<string, unknown> = { ...(currentResult as Record<string, unknown>) };
+      // @ts-ignore - erp.currentAction returns a thunk action
       dispatch(erp.currentAction({ actionType: 'update', data }));
     }
   }, [currentResult]);
@@ -43,7 +54,7 @@ export default function UpdateInvoiceModule({ config }) {
     return (
       <ErpLayout>
         {isSuccess ? (
-          <UpdateItem config={config} UpdateForm={InvoiceForm} />
+          <UpdateItem config={config} UpdateForm={InvoiceForm as React.ComponentType<{subTotal: number; current: unknown}>} />
         ) : (
           <NotFound entity={config.entity} />
         )}
