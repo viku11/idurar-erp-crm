@@ -118,6 +118,123 @@ interface ErpDispatchAction {
   payload?: unknown;
 }
 
+import type {
+  KeyState,
+  ErpAction,
+} from './types';
+
+// ---- Parameter interfaces for each action creator ----
+
+interface SearchOptions {
+  [key: string]: string;
+}
+
+interface SummaryOptions {
+  [key: string]: string;
+}
+
+interface ResetActionParams {
+  actionType: KeyState;
+}
+
+interface CurrentItemParams {
+  data: Record<string, unknown>;
+}
+
+interface CurrentActionParams {
+  actionType: KeyState;
+  data: Record<string, unknown>;
+}
+
+interface ListOptions {
+  page?: number;
+  items?: number;
+  [key: string]: string | number | undefined;
+}
+
+interface ListParams {
+  entity: string;
+  options?: ListOptions;
+}
+
+interface CreateParams {
+  entity: string;
+  jsonData: Record<string, unknown>;
+}
+
+interface RecordPaymentParams {
+  entity: string;
+  jsonData: Record<string, unknown>;
+}
+
+interface ReadParams {
+  entity: string;
+  id: string;
+}
+
+interface UpdateParams {
+  entity: string;
+  id: string;
+  jsonData: Record<string, unknown>;
+}
+
+interface DeleteParams {
+  entity: string;
+  id: string;
+}
+
+interface SearchParams {
+  entity: string;
+  options?: SearchOptions;
+}
+
+interface SummaryParams {
+  entity: string;
+  options?: SummaryOptions;
+}
+
+interface MailParams {
+  entity: string;
+  jsonData: Record<string, unknown>;
+}
+
+interface ConvertParams {
+  entity: string;
+  id: string;
+}
+
+// ---- Thunk dispatch type ----
+
+type Dispatch = (action: ErpAction) => void;
+
+// ---- API response shapes ----
+
+interface ApiPagination {
+  page: string;
+  count: string;
+}
+
+interface ApiListResponse {
+  success: boolean;
+  result: Array<Record<string, unknown>>;
+  pagination: ApiPagination;
+}
+
+interface ApiResponse {
+  success: boolean;
+  result: unknown;
+}
+
+interface RecordPaymentResult {
+  invoice: unknown;
+  [key: string]: unknown;
+}
+
+interface ApiRecordPaymentResponse {
+  success: boolean;
+  result: RecordPaymentResult;
+}
+
 export const erp = {
   resetState:
     () =>
@@ -167,9 +284,9 @@ export const erp = {
         const result = {
           items: data.result,
           pagination: {
-            current: parseInt(data.pagination.page, 10),
+            current: parseInt(data.pagination!.page, 10),
             pageSize: options?.items || 10,
-            total: parseInt(data.pagination.count, 10),
+            total: parseInt(data.pagination!.count, 10),
           },
         };
         dispatch({
@@ -204,7 +321,7 @@ export const erp = {
         });
         dispatch({
           type: actionTypes.CURRENT_ITEM,
-          payload: data.result,
+          payload: data.result as Record<string, unknown>,
         });
       } else {
         dispatch({
@@ -233,7 +350,7 @@ export const erp = {
         });
         dispatch({
           type: actionTypes.CURRENT_ITEM,
-          payload: data.result.invoice,
+          payload: (data.result as Record<string, unknown>).invoice as Record<string, unknown>,
         });
       } else {
         dispatch({
@@ -257,7 +374,7 @@ export const erp = {
       if (data.success === true) {
         dispatch({
           type: actionTypes.CURRENT_ITEM,
-          payload: data.result,
+          payload: data.result as Record<string, unknown>,
         });
         dispatch({
           type: actionTypes.REQUEST_SUCCESS,
@@ -291,7 +408,7 @@ export const erp = {
         });
         dispatch({
           type: actionTypes.CURRENT_ITEM,
-          payload: data.result,
+          payload: data.result as Record<string, unknown>,
         });
       } else {
         dispatch({
@@ -308,6 +425,7 @@ export const erp = {
       dispatch({
         type: actionTypes.RESET_ACTION,
         keyState: 'delete',
+        payload: null,
       });
       dispatch({
         type: actionTypes.REQUEST_LOADING,
