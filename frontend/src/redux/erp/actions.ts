@@ -1,5 +1,90 @@
 import * as actionTypes from './types';
 import { request } from '@/request';
+import type { KeyState } from './types';
+
+interface ApiResponse {
+  success: boolean;
+  result: unknown;
+  pagination?: {
+    page: string;
+    count: string;
+  };
+  message?: string;
+}
+
+interface RecordPaymentResult {
+  invoice: unknown;
+  [key: string]: unknown;
+}
+
+interface ListOptions {
+  page?: number;
+  items?: number;
+  [key: string]: unknown;
+}
+
+interface ResetActionParams {
+  actionType: KeyState;
+}
+
+interface CurrentItemParams {
+  data: Record<string, unknown>;
+}
+
+interface CurrentActionParams {
+  actionType: KeyState;
+  data: Record<string, unknown>;
+}
+
+interface ListParams {
+  entity: string;
+  options?: ListOptions;
+}
+
+interface CreateParams {
+  entity: string;
+  jsonData: Record<string, unknown>;
+}
+
+interface ReadParams {
+  entity: string;
+  id: string;
+}
+
+interface UpdateParams {
+  entity: string;
+  id: string;
+  jsonData: Record<string, unknown>;
+}
+
+interface DeleteParams {
+  entity: string;
+  id: string;
+}
+
+interface SearchParams {
+  entity: string;
+  options: Record<string, string>;
+}
+
+interface SummaryParams {
+  entity: string;
+  options: Record<string, string>;
+}
+
+interface MailParams {
+  entity: string;
+  jsonData: Record<string, unknown>;
+}
+
+interface ConvertParams {
+  entity: string;
+  id: string;
+}
+
+type Dispatch = (action: Record<string, unknown>) => void;
+type ThunkAction = (dispatch: Dispatch) => void;
+type AsyncThunkAction = (dispatch: Dispatch) => Promise<void>;
 
 import type {
   KeyState,
@@ -154,9 +239,9 @@ export const erp = {
         const result = {
           items: data.result,
           pagination: {
-            current: parseInt(data.pagination.page, 10),
+            current: parseInt(data.pagination!.page, 10),
             pageSize: options?.items || 10,
-            total: parseInt(data.pagination.count, 10),
+            total: parseInt(data.pagination!.count, 10),
           },
         };
         dispatch({
@@ -220,7 +305,7 @@ export const erp = {
         });
         dispatch({
           type: actionTypes.CURRENT_ITEM,
-          payload: data.result.invoice,
+          payload: (data.result as RecordPaymentResult).invoice,
         });
       } else {
         dispatch({
